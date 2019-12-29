@@ -1,0 +1,470 @@
+/*fonts*/
+@font-face {
+    font-family: 'PT Sans';
+    font-style: italic;
+    font-weight: normal;
+    src: url("fonts/PT_Sans-Web-Italic.ttf") format("truetype"), url(https://fonts.gstatic.com/s/ptsans/v9/jizYRExUiTo99u79D0e0ysmIEDQ.woff2) format('woff2');
+}
+
+@font-face {
+    font-family: 'PT Sans';
+    font-style: normal;
+    font-weight: normal;
+    src: url("fonts/PT_Sans-Web-Regular.ttf") format("truetype"), url(https://fonts.gstatic.com/s/ptsans/v9/jizaRExUiTo99u79D0-ExdGM.woff2) format('woff2');
+}
+
+@font-face {
+    font-family: 'PT Sans';
+    font-style: normal;
+    font-weight: bold;
+    src: url("fonts/PT_Sans-Web-Bold.ttf") format("truetype"), url(https://fonts.gstatic.com/s/ptsans/v9/jizYRExUiTo99u79D0e0ysmIEDQ.woff2) format('woff2');
+}
+
+@font-face {
+    font-family: 'PT Sans';
+    font-style: italic;
+    font-weight: bold;
+    src: url("fonts/PT_Sans-Web-BoldItalic.ttf") format("truetype"), url(https://fonts.gstatic.com/s/ptsans/v9/jizaRExUiTo99u79D0-ExdGM.woff2) format('woff2');
+}
+
+@font-face {
+    font-family: 'PT Serif';
+    font-style: italic;
+    font-weight: normal;
+    src: url("fonts/PT_Serif-Web-Italic.ttf") format("truetype"), url(https://fonts.gstatic.com/s/ptserif/v9/EJRTQgYoZZY2vCFuvAFT_rC1chb-.woff2) format('woff2');
+}
+
+@font-face {
+    font-family: 'PT Serif';
+    font-style: normal;
+    font-weight: normal;
+    src: url("fonts/PT_Serif-Web-Regular.ttf") format("truetype"), url(https://fonts.gstatic.com/s/ptserif/v9/EJRVQgYoZZY2vCFuvAFbzr-tdg.woff2) format('woff2');
+}
+
+@font-face {
+    font-family: 'PT Serif';
+    font-style: normal;
+    font-weight: bold;
+    src: url("fonts/PT_Serif-Web-Bold.ttf") format("truetype"), url(https://fonts.gstatic.com/s/ptserif/v9/EJRTQgYoZZY2vCFuvAFT_rC1chb-.woff2) format('woff2');
+}
+
+@font-face {
+    font-family: 'PT Serif';
+    font-style: italic;
+    font-weight: bold;
+    src: url("fonts/PT_Serif-Web-BoldItalic.ttf") format("truetype"), url(https://fonts.gstatic.com/s/ptserif/v9/EJRVQgYoZZY2vCFuvAFbzr-tdg.woff2) format('woff2');
+}
+
+/*/fonts*/
+
+@media print {
+    button {
+        display: none;
+    }
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+body {
+    background: #aaa;
+    font-family: "PT Sans";
+    font-size: 11pt;
+}
+
+@page {
+    size: 21cm 29.7cm;
+    margin: 0;
+}
+
+@page:last {
+    size: 21cm 29.7cm;
+    margin: 0;
+}
+
+.pagebreak {
+    page-break-after: always;
+}
+
+.container {
+    margin: 0 auto;
+    width: 210mm;
+    background: #fff;
+}
+
+header,
+main,
+footer {
+    width: 100%;
+}
+
+header {
+    min-height: 45mm;
+}
+
+footer {
+    min-height: 40mm;
+}
+
+.header_img,
+.footer_img {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    opacity: 0.75;
+    width: 100%;
+}
+
+.footer_img {
+    top: 5mm;
+}
+
+.footer,
+.header {
+    position: relative;
+    color: #4f624e;
+    font-family: "PT Sans";
+    font-size: 1.15rem;
+    margin:  0;
+}
+
+.mail,
+.site {
+    position: absolute;
+    left: 40mm;
+}
+
+.mail {
+    bottom: 30mm;
+}
+
+.site {
+    bottom: 24mm;
+}
+
+.site a {
+    color: #891619;
+    text-decoration: none;
+}
+
+.site a:hover {
+    text-decoration: underline;
+}
+
+.name,
+.phone {
+    position: absolute;
+    right: 20mm;
+}
+
+.name {
+    bottom: 20mm;
+    right: 31mm;
+}
+
+.phone {
+    bottom: 7mm;
+}
+
+.content {
+    padding-left: 18mm;
+    padding-right: 15mm;
+    padding-top: 20px;
+}
+
+.date {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: justify;
+    -ms-flex-pack: justify;
+    justify-content: space-between;
+    font-weight: bold;
+    font-size: 12pt;
+}
+.intro {
+    width: 100%;
+    font-size: 14pt;
+    margin-top: 20px;
+    text-align: center;
+    font-weight: bold;
+}
+.intro-heading {
+    width: 100%;
+    margin-bottom: 30px;
+}
+.intro-footing {
+    width: 100%;
+    margin-bottom: 10px;
+    font-family: "PT Serif";
+}
+.loweracse {
+    text-transform: lowercase;
+}
+p {
+    text-align: justify;
+    font-family: "PT Serif";
+    font-size: 11.5pt;
+}
+p::first-letter {
+    padding-left: 35px !important;
+}
+.mainContent-heading {
+    margin-bottom: 20px;
+}
+.clear {
+    clear: both;
+}
+.mainContent-img {
+    width: 33.3333%;
+    padding: 0 15px 15px 0;
+    float: left;
+}
+.mainContent-img img {
+    width: 100%;
+}
+.mainText {
+    margin-bottom: 15px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+table th,
+table td {
+    border: 0.5pt solid #bbb;
+}
+table th {
+    padding: 5px;
+    font-family: "PT Sans";
+    font-weight: bold;
+    font-size: 11pt;
+}
+table td {
+    padding: 5px 5px 0;
+}
+.table-items td {
+    height: 4cm !important;
+    text-align: center;
+}
+.table-items td img {
+    height: 100%;
+    width: auto;
+}
+.linkToOtherItems {
+    margin-top: 10px;
+    text-align: center;
+    font-family: "PT Serif";
+    font-size: 11pt;
+}
+.printHide {
+    color: #ccc;
+    position: absolute;
+}
+
+.table-features {
+    border-collapse: collapse;
+}
+
+.table-features td, .table-features th {
+    border: 1px solid #bbb;
+    padding: 1px;
+}
+.table-features th {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+.table-features td {
+    border-top: 0;
+}
+.table-features img {
+    width: 100%;
+    vertical-align: bottom;
+}
+.list-counter {
+    width: 30px;
+}
+.list-name {
+    width: 350px;
+}
+.list-number {
+    width: 60px;
+}
+.list-price {
+    width: 155px;
+}
+.beginingForm {
+    width: 300px;
+}
+.preliminary-calc {
+    font-size: 11pt;
+    font-family: "PT Serif";
+    color: #e36c0a;
+    margin: 35px 0 9px 40px;
+}
+.euro {
+    color: #c00000;
+}
+.rub {
+    color: #0070c0;
+}
+.table-main_materials,
+.table-addit_materials {
+    margin-bottom: 20px;
+}
+.table-main_materials tr:nth-child(1) th,
+.table-addit_materials tr:nth-child(1) th {
+    line-height: 15px;
+}
+.table-main_materials th,
+.table-main_materials td,
+.table-addit_materials th,
+.table-addit_materials td {
+    padding: 3px 0;
+}
+.table-main_materials td,
+.table-addit_materials td {
+    padding: 5px;
+}
+.table-main_materials td:nth-child(1),
+.table-main_materials th:nth-child(1),
+.table-addit_materials td:nth-child(1),
+.table-addit_materials th:nth-child(1) {
+    width: 35px;
+}
+.table-main_materials td:nth-child(2),
+.table-addit_materials td:nth-child(2) {
+    text-align: left;
+}
+.table-main_materials td:nth-child(3),
+.table-addit_materials td:nth-child(3) {
+    width: 85px;
+    text-align: center;
+}
+.table-main_materials td:nth-child(4),
+.table-addit_materials td:nth-child(4) {
+    width: 45px;
+    text-align: center;
+}
+.table-main_materials td:nth-child(5),
+.table-addit_materials td:nth-child(5) {
+    width: 90px;
+    text-align: right;
+}
+.table-main_materials td:nth-child(6),
+.table-addit_materials td:nth-child(6) {
+    width: 100px;
+    text-align: right;
+}
+.sum {
+    text-align: right;
+    padding: 5px!important;
+    white-space: nowrap;
+}
+.comment {
+    margin-left: 30px;
+}
+.collection-name-block {
+    margin-bottom: 10px;
+    text-align: center;
+    font-family: "PT Serif";
+    font-size: 14pt;
+    font-weight: bold;
+}
+.kind-of-flooring {
+    font-style: italic;
+}
+.capitalize {
+    text-transform: capitalize;
+}
+.collection-name {
+    color: #c00000;
+}
+
+
+/*стили для режима распечатывания*/
+@media print {
+    .counter_page {
+        position: fixed;
+        bottom: 10mm;
+        right: 10mm;
+        content: counter(page);
+    }
+    
+    img {
+        display: block !important;
+    }
+    
+    .printHide {
+        display: none;
+    }
+
+    .divFooter {
+        position: absolute;
+        bottom: 0;
+    }
+
+    .divFooter::after {
+        content: url("footer.jpg");
+        display: block;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 210mm;
+        opacity: 0.5;
+    }
+
+    .divHeader {
+        position: absolute;
+        top: 0;
+    }
+    
+    .exp {
+        margin-top: 45mm;
+    }
+    
+    .divHeader::after {
+        content: url("header.jpg");
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 210mm;
+        opacity: 0.5;
+    }
+    
+    .mail,
+    .site {
+    position: fixed;
+    left: 40mm;
+    }
+
+    .mail {
+        bottom: 30mm;
+    }
+
+    .site {
+        bottom: 25mm;
+    }
+
+    .name,
+    .phone {
+        position: fixed;
+        right: 20mm;
+    }
+
+    .name {
+        bottom: 20mm;
+        right: 31mm;
+    }
+
+    .phone {
+        bottom: 7mm;
+    }
+}
