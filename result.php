@@ -53,6 +53,7 @@
     $managerEmail = $_POST['email'];
     $managerName = $_POST['name'];
     $collectionName = $_POST['collectionName'];
+    $htmlData = file_get_contents($linkToItems);
 ?>
 
 <body>
@@ -72,6 +73,22 @@
                 </div>
                 <div class="intro-footing">Уважаемый <?php echo $clientName."!";?></div>
             </div>
+            <?php
+                $pos1 = strpos($htmlData, '<div class="breadcrambs">');
+                $tableStr = substr($htmlData, $pos1);
+                $htmlData = explode('</main>', $tableStr)[0];
+                echo "<div hidden>$htmlData</div>";
+            ?>
+            <script>
+                let featersTable = $('.caracter-table')
+                let photoItems = $('div.collection-container')
+                let mainPhotoCollection = $('div.entry-photo')
+                let textDescFirstPart = $('div.entry-text')
+                let textDescSecondPart = $('div.collapse')
+                let collectionName = $('h1')
+                let flooringType = $('h2')
+                
+            </script>
             <div class="mainContent">
                 <div class="mainContent-heading"><p>Предлагаю Вам к рассмотрению <?php echo $choosenCharMain." ".$choosenCharSub." ".$choosenFlooring." ".$choosenFabric;?>, а также сопутствующие материалы к нему. Этот <?php echo $choosenFlooring;?> предназначен для использования в <b>чистых помещениях</b>!</p></div>
                 <div class="collection-name-block">
@@ -490,6 +507,7 @@
 <!--            <div class="counter_page">1</div>-->
         </footer>
     </div>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 </body>
 
 </html>
