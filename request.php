@@ -35,6 +35,43 @@
             <form id="KP" action="result.php" enctype="multipart/form-data" method="post">
                 <h1>Заполни форму:</h1>
                 <input type="hidden" name="maxFileSize" value="30000">
+                
+                <fieldset id="projects" class="projects_list">
+                    <legend>Выбери проект:</legend>
+                </fieldset>
+                <script>
+                    var existProjects = document.getElementById('projects'),
+                        newProject = document.createElement('label'),
+                        newProjectName,
+                        projectsList = [],
+                        projectsListMark = [],
+                        projectsContent = [];
+                    
+                    if (localStorage.getItem('projectsList') !== (undefined || null)) {
+                        newProjectName = localStorage.getItem('client');
+                        newProject.className = 'projects_list-item';
+                        newProject.innerHTML = '<span class="deleteProject" onclick = "deleteProject(this)">&mdash;</span>&nbsp;<input name="currentProject" value="'+newProjectName+'" type="radio">&nbsp;'+newProjectName+'<hr>';
+                        existProjects.appendChild(newProject);
+                        projectsList.push(newProjectName);
+                        projectsListMark.push(0);
+                    }
+                    
+                    function deleteProject(elem) {
+                        var element = elem.nextSibling.value,
+                            idElem = projectsList.indexOf(element);
+                        projectsList.splice(idElem,1);
+                        projectsListMark.splice(idElem,1);
+                        elem.parentNode.parentNode.removeChild(elem.parentNode);
+                    }
+                    
+                    что нужно для дальнейшей работы:
+                    
+                    var x = Object.assign({}, localStorage);
+                    let json = JSON.stringify(x);   // obj --> str
+                    var json = JSON.parse(x);       // str --> obj
+                    location.reload();
+                    localStorage.clear();
+                </script>
                 <fieldset>
                     <legend>Выбрать ФИО менеджера</legend>
                     <select name="chooseManager" onchange="cacheMake(this.name, this.value);">
@@ -72,6 +109,26 @@
                         onchange="cacheMake(this.name, this.value);" 
                         onfocus="select(this)" 
                         type="url" 
+                    >
+                </label><br>
+                <label>Введите номера артикулов (через запятую):
+                    <input 
+                        name="itemsNumbers" 
+                        class="beginingForm" 
+                        placeholder="xxx, yyy, zzz"
+                        onchange="cacheMake(this.name, this.value);" 
+                        onfocus="select(this)" 
+                        type="text" 
+                    >
+                </label><br>
+                <label>Введите текущий курс евро:
+                    <input 
+                        name="euroRate" 
+                        class="beginingForm" 
+                        placeholder="Введите текущий курс евро"
+                        onchange="cacheMake(this.name, this.value);" 
+                        onfocus="select(this)" 
+                        type="text" 
                     >
                 </label><br>
                 <fieldset> 
@@ -279,45 +336,47 @@
         cacheMainTable = document.getElementById('mainPositions');
         cacheExtraTable = document.getElementById('additionalPositions');
         
-        cacheManager[0].value = localStorage.getItem(cacheManager[0].name);
-        cacheFormInput[0].value = localStorage.getItem(cacheFormInput[0].name);
-        cacheFormInput[1].value = localStorage.getItem(cacheFormInput[1].name);
-        cacheFormInput[2].value = localStorage.getItem(cacheFormInput[2].name);
-        document.getElementsByName('commentText')[0].value = localStorage.getItem('commentText');
-        
-        if (localStorage.getItem('cacheMainTable')) {
-            cacheMainTable.innerHTML = localStorage.getItem('cacheMainTable');
-        }
-        if (localStorage.getItem('cacheExtraTable')) {
-            cacheExtraTable.innerHTML = localStorage.getItem('cacheExtraTable');
-        }
-        
-        if (localStorage.getItem('mainPositionsCount')) {
-            for (var i=0; i<mainPositionsCount; i++) {
-                if (localStorage.getItem('mainMaterial[' + i +', 3]')){
-                    document.getElementsByName('mainMaterial[' + i +', 3]')[0].value = localStorage.getItem('mainMaterial[' + i +', 3]');
+        function getCurCache() {
+            cacheManager[0].value = localStorage.getItem(cacheManager[0].name);
+            for (var i=0; i<cacheFormInput.length; i++) {
+                cacheFormInput[i].value = localStorage.getItem(cacheFormInput[i].name);
+            }
+            document.getElementsByName('commentText')[0].value = localStorage.getItem('commentText');
+
+            if (localStorage.getItem('cacheMainTable')) {
+                cacheMainTable.innerHTML = localStorage.getItem('cacheMainTable');
+            }
+            if (localStorage.getItem('cacheExtraTable')) {
+                cacheExtraTable.innerHTML = localStorage.getItem('cacheExtraTable');
+            }
+
+            if (localStorage.getItem('mainPositionsCount')) {
+                for (var i=0; i<mainPositionsCount; i++) {
+                    if (localStorage.getItem('mainMaterial[' + i +', 3]')){
+                        document.getElementsByName('mainMaterial[' + i +', 3]')[0].value = localStorage.getItem('mainMaterial[' + i +', 3]');
+                    }
+                }
+            }
+
+            if (localStorage.getItem('additionalPositionsCount')) {
+                for (var i=0; i<additionalPositionsCount; i++) {
+                    if (localStorage.getItem('additionalMaterial[' + i +', 3]')){
+                        document.getElementsByName('additionalMaterial[' + i +', 3]')[0].value = localStorage.getItem('additionalMaterial[' + i +', 3]');
+                    }
+                }
+            }
+
+            if (localStorage.getItem('comment')) {
+                for (var i=0; i<comment.length; i++) {
+                    if (comment[i].value === localStorage.getItem('comment')) {
+                        comment[i].checked = true;
+                    }
                 }
             }
         }
         
-        if (localStorage.getItem('additionalPositionsCount')) {
-            for (var i=0; i<additionalPositionsCount; i++) {
-                if (localStorage.getItem('additionalMaterial[' + i +', 3]')){
-                    document.getElementsByName('additionalMaterial[' + i +', 3]')[0].value = localStorage.getItem('additionalMaterial[' + i +', 3]');
-                }
-            }
-        }
-        
-        if (localStorage.getItem('comment')) {
-            for (var i=0; i<comment.length; i++) {
-                if (comment[i].value === localStorage.getItem('comment')) {
-                    comment[i].checked = true;
-                }
-            }
-        }
-        
+        getCurCache();
     </script>
-    
 </body>
 
 </html>
