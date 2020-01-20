@@ -64,6 +64,9 @@
                         elem.parentNode.parentNode.removeChild(elem.parentNode);
                     }
                     
+                    function setProject() {
+                      var allProjects = localStorage.getItem('projectsList');
+                    }
                     что нужно для дальнейшей работы:
                     
                     var x = Object.assign({}, localStorage);
