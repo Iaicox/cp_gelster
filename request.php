@@ -47,13 +47,18 @@
                         projectsListMark = [],
                         projectsContent = [];
                     
-                    if (localStorage.getItem('projectsList') !== (undefined || null)) {
-                        newProjectName = localStorage.getItem('client');
-                        newProject.className = 'projects_list-item';
-                        newProject.innerHTML = '<span class="deleteProject" onclick = "deleteProject(this)">&mdash;</span>&nbsp;<input name="currentProject" value="'+newProjectName+'" type="radio">&nbsp;'+newProjectName+'<hr>';
-                        existProjects.appendChild(newProject);
-                        projectsList.push(newProjectName);
-                        projectsListMark.push(0);
+                    function setProject() {
+                      if (localStorage.getItem('projectsList') !== (undefined || null)) {
+                          newProjectName = localStorage.getItem('projectsList').split(',');
+                          newProject.className = 'projects_list-item';
+                          
+                          for (var i=0; i<newProjectName.length; i++) {
+                            newProject.innerHTML = '<span class="deleteProject" onclick="deleteProject(this)">&mdash;</span>&nbsp;<input name="currentProject" value="'+newProjectName[i]+'" type="radio">&nbsp;'+newProjectName[i]+'<hr>';
+                            existProjects.appendChild(newProject.cloneNode(deep));
+                            projectsList.push(newProjectName[i]);
+                            projectsListMark.push(0);
+                          }
+                      }
                     }
                     
                     function deleteProject(elem) {
@@ -64,9 +69,23 @@
                         elem.parentNode.parentNode.removeChild(elem.parentNode);
                     }
                     
-                    function setProject() {
-                      var allProjects = localStorage.getItem('projectsList');
+                    function saveProject() {
+                      var storageCopy = Object.assign({}, localStorage);
+                      if (localStorage.getItem('projectsList') !== (undefined || null)) {
+                        projectsList = localStorage.getItem('projectsList').split(',');
+                      }
+                      projectsList.push(localStorage.getItem('client'));
+                      cacheMake('projectsList', projectsList.toString());
+                      projectsContent.push(JSON.stringify(storageCopy))
+                      cacheMake('projectsContent', projectsContent.toString());
                     }
+                    
+                    function chooseProject(elem) {
+                      var element = elem.value,
+                          idElem = projectsList.indexOf(element),
+                          contentelem = localStorage.getItem('projectsContent')
+                          projectsContent[idElem]
+                    } 
                     что нужно для дальнейшей работы:
                     
                     var x = Object.assign({}, localStorage);
