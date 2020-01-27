@@ -47,14 +47,26 @@
                         projectsListMark = [],
                         projectsContent = [];
                     
+                    if (localStorage.getItem('projectsList') !== (undefined || null)) {
+                        projectsList = localStorage.getItem('projectsList').split(',');
+                        projectsContent = localStorage.getItem('projectsContent').split(',');
+                    }
+                    
                     function setProject() {
                       if (localStorage.getItem('projectsList') !== (undefined || null)) {
                           newProjectName = localStorage.getItem('projectsList').split(',');
                           newProject.className = 'projects_list-item';
                           
+                          var idElem = projectsList.indexOf(localStorage.getItem('client'));
+                          
                           for (var i=0; i<newProjectName.length; i++) {
-                            newProject.innerHTML = '<span class="deleteProject" onclick="deleteProject(this)">&mdash;</span>&nbsp;<input name="currentProject" value="'+newProjectName[i]+'" type="radio">&nbsp;'+newProjectName[i]+'<hr>';
-                            existProjects.appendChild(newProject.cloneNode(deep));
+                            if (i == idElem) {
+                                newProject.innerHTML = '<span class="deleteProject" onclick="deleteProject(this)">&mdash;</span>&nbsp;<input name="currentProject" value="'+newProjectName[i]+'" type="radio" checked>&nbsp;'+newProjectName[i]+'<hr>';
+                            } else {
+                                newProject.innerHTML = '<span class="deleteProject" onclick="deleteProject(this)">&mdash;</span>&nbsp;<input name="currentProject" value="'+newProjectName[i]+'" type="radio">&nbsp;'+newProjectName[i]+'<hr>';
+                            }
+                            
+                            existProjects.appendChild(newProject.cloneNode(true));
                             projectsList.push(newProjectName[i]);
                             projectsListMark.push(0);
                           }
@@ -71,28 +83,28 @@
                     
                     function saveProject() {
                       var storageCopy = Object.assign({}, localStorage);
-                      if (localStorage.getItem('projectsList') !== (undefined || null)) {
-                        projectsList = localStorage.getItem('projectsList').split(',');
-                      }
                       projectsList.push(localStorage.getItem('client'));
+                      localStorage.removeItem('projectsList');
                       cacheMake('projectsList', projectsList.toString());
                       projectsContent.push(JSON.stringify(storageCopy))
+                      localStorage.removeItem('projectsContent');
                       cacheMake('projectsContent', projectsContent.toString());
                     }
+                    
                     
                     function chooseProject(elem) {
                       var element = elem.value,
                           idElem = projectsList.indexOf(element),
-                          contentelem = localStorage.getItem('projectsContent')
-                          projectsContent[idElem]
+                          contentelem = projectsContent[idElem];
                     } 
-                    что нужно для дальнейшей работы:
-                    
-                    var x = Object.assign({}, localStorage);
-                    let json = JSON.stringify(x);   // obj --> str
-                    var json = JSON.parse(x);       // str --> obj
-                    location.reload();
-                    localStorage.clear();
+//                    что нужно для дальнейшей работы:
+//                    
+//                    var x = Object.assign({}, localStorage);
+//                    let json = JSON.stringify(x);   // obj --> str
+//                    var json = JSON.parse(x);       // str --> obj
+//                    location.reload();
+//                    localStorage.clear();
+                    setProject();
                 </script>
                 <fieldset>
                     <legend>Выбрать ФИО менеджера</legend>
@@ -345,7 +357,7 @@
                         <input type="text" name="commentText" onchange="cacheMake(this.name, this.value)">
                     </label>
                 </fieldset>
-                <br><input type="submit" onclick="cacheMake()" value="Создать КП" style="padding:5px;border-radius:10px;">
+                <br><input type="submit" onclick="cacheMake(); saveProject();" value="Создать КП" style="padding:5px;border-radius:10px;">
             </form>
         </main>
         <footer class="footer">
