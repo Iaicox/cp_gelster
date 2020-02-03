@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="ru">
 
 <head>
@@ -21,7 +21,9 @@
            cacheExtraTable,
            cacheExtraTableStringName='cacheExtraTable',
            onChahgeValueName = "value",
-           comment = document.getElementsByName('comment');
+           comment = document.getElementsByName('comment'),
+           mainCurChoose = document.getElementsByName('mainCurChoose'),
+           extraCurChoose = document.getElementsByName('extraCurChoose');
        
        function cacheMake( key, value ) {
            localStorage.setItem(key, value);
@@ -42,33 +44,30 @@
                 <script>
                     var existProjects = document.getElementById('projects'),
                         newProject = document.createElement('label'),
-                        newProjectName,
                         projectsList = [],
-                        projectsListMark = [],
-                        projectsContent = [];
+                        projectsContent = [],
+                        projectsListCheck = false;
                     
                     if (localStorage.getItem('projectsList') !== (undefined || null)) {
                         projectsList = localStorage.getItem('projectsList').split(',');
                         projectsContent = localStorage.getItem('projectsContent').split(',');
+                        projectsListCheck = true;
                     }
                     
                     function setProject() {
-                      if (localStorage.getItem('projectsList') !== (undefined || null)) {
-                          newProjectName = localStorage.getItem('projectsList').split(',');
+                      if (projectsListCheck) {
                           newProject.className = 'projects_list-item';
                           
                           var idElem = projectsList.indexOf(localStorage.getItem('client'));
                           
-                          for (var i=0; i<newProjectName.length; i++) {
+                          for (var i=0; i<projectsList.length; i++) {
                             if (i == idElem) {
-                                newProject.innerHTML = '<span class="deleteProject" onclick="deleteProject(this)">&mdash;</span>&nbsp;<input name="currentProject" value="'+newProjectName[i]+'" type="radio" checked>&nbsp;'+newProjectName[i]+'<hr>';
+                                newProject.innerHTML = '<span class="deleteProject" onclick="deleteProject(this)" title="Удалить проект">&mdash;</span>&nbsp;<input onclick="chooseProject(this);" name="currentProject" value="'+projectsList[i]+'" type="radio" checked>&nbsp;'+projectsList[i]+'<hr>';
                             } else {
-                                newProject.innerHTML = '<span class="deleteProject" onclick="deleteProject(this)">&mdash;</span>&nbsp;<input name="currentProject" value="'+newProjectName[i]+'" type="radio">&nbsp;'+newProjectName[i]+'<hr>';
+                                newProject.innerHTML = '<span class="deleteProject" onclick="deleteProject(this)" title="Удалить проект">&mdash;</span>&nbsp;<input onclick="chooseProject(this);" name="currentProject" value="'+projectsList[i]+'" type="radio">&nbsp;'+projectsList[i]+'<hr>';
                             }
                             
                             existProjects.appendChild(newProject.cloneNode(true));
-                            projectsList.push(newProjectName[i]);
-                            projectsListMark.push(0);
                           }
                       }
                     }
@@ -77,33 +76,43 @@
                         var element = elem.nextSibling.value,
                             idElem = projectsList.indexOf(element);
                         projectsList.splice(idElem,1);
-                        projectsListMark.splice(idElem,1);
+                        projectsContent.splice(idElem,1);
                         elem.parentNode.parentNode.removeChild(elem.parentNode);
                     }
                     
                     function saveProject() {
-                      var storageCopy = Object.assign({}, localStorage);
-                      projectsList.push(localStorage.getItem('client'));
-                      localStorage.removeItem('projectsList');
-                      cacheMake('projectsList', projectsList.toString());
-                      projectsContent.push(JSON.stringify(storageCopy))
-                      localStorage.removeItem('projectsContent');
-                      cacheMake('projectsContent', projectsContent.toString());
+                        var storageCopy = Object.assign({}, localStorage);
+                        storageCopy = JSON.stringify(storageCopy);
+                        storageCopy = storageCopy.replace(/,/g, 'a1b2c3');
+                        var idElem = projectsList.indexOf(localStorage.getItem('client'));
+                        if (!(idElem != -1)) {
+                            projectsList.push(localStorage.getItem('client'));
+                            projectsContent.push(storageCopy);
+                        } else {
+                            projectsContent[idElem] = storageCopy;
+                        }
+                        localStorage.removeItem('projectsList');
+                        localStorage.removeItem('projectsContent');
+                        cacheMake('projectsList', projectsList.toString());
+                        cacheMake('projectsContent', projectsContent.toString());
                     }
                     
-                    
                     function chooseProject(elem) {
-                      var element = elem.value,
-                          idElem = projectsList.indexOf(element),
-                          contentelem = projectsContent[idElem];
+                        var element = elem.value,
+                            idElem = projectsList.indexOf(element),
+                            contentElem = projectsContent[idElem];
+                        
+                        contentElem = contentElem.replace(/a1b2c3/g, ',');
+                        contentElem = JSON.parse(contentElem);
+                        
+                        localStorage.clear();
+                        for (var prop in contentElem) {
+                            cacheMake(prop, contentElem[prop]);
+                        }
+                        cacheMake('projectsList', projectsList.toString());
+                        cacheMake('projectsContent', projectsContent.toString());
+                        location.reload();
                     } 
-//                    что нужно для дальнейшей работы:
-//                    
-//                    var x = Object.assign({}, localStorage);
-//                    let json = JSON.stringify(x);   // obj --> str
-//                    var json = JSON.parse(x);       // str --> obj
-//                    location.reload();
-//                    localStorage.clear();
                     setProject();
                 </script>
                 <fieldset>
@@ -165,7 +174,17 @@
                         type="text" 
                     >
                 </label><br>
-                <fieldset> 
+                <fieldset>
+                    <legend>Выберите валюту основных материалов:</legend>
+                    <label><input name="mainCurChoose" value="rub" class="" onchange="cacheMake(this.name, this.value);" type="radio" checked>&nbsp;Рубли</label><br>
+                    <label><input name="mainCurChoose" value="rubAndEuro" class="" onchange="cacheMake(this.name, this.value);" type="radio">&nbsp;Рубли и Евро</label>
+                </fieldset>
+                <fieldset>
+                    <legend>Выберите валюту дополнительных материалов:</legend>
+                    <label><input name="extraCurChoose" value="rub" class="" onchange="cacheMake(this.name, this.value);" type="radio" checked>&nbsp;Рубли</label><br>
+                    <label><input name="extraCurChoose" value="rubAndEuro" class="" onchange="cacheMake(this.name, this.value);" type="radio">&nbsp;Рубли и Евро</label>
+                </fieldset>
+                <fieldset>
                     <legend>Какие основные материалы:</legend>
                     <div style="position:relative;margin-bottom:20px;" id="mainPositions">
                         <div id="mainBlockItem1">
@@ -257,8 +276,8 @@
                     }
                 </script>
                 <fieldset>
-                    <legend>Какие дополнительные материалы:</legend>
-                    <div style="position:relative;" id="additionalPositions">
+                    <legend>Какие дополнительные материалы и работы:</legend>
+                    <div style="position:relative;margin-bottom:20px;" id="additionalPositions">
                         <div id="blockItem1">
                             <label><input class="list-counter" name="additionalMaterial[0, 0]" type="text" readonly value="1."></label>
                             <label><input class="list-name" name="additionalMaterial[0, 1]" placeholder="Наименование" onchange="this.setAttribute(onChahgeValueName, this.value); cacheMake('cacheExtraTable', cacheExtraTable.innerHTML);" type="text"></label>
@@ -357,6 +376,7 @@
                         <input type="text" name="commentText" onchange="cacheMake(this.name, this.value)">
                     </label>
                 </fieldset>
+                <br><input type="button" onclick="cacheMake(); saveProject();" value="Соханить проект" style="padding:5px;border-radius:10px;">
                 <br><input type="submit" onclick="cacheMake(); saveProject();" value="Создать КП" style="padding:5px;border-radius:10px;">
             </form>
         </main>
@@ -382,6 +402,30 @@
             }
             if (localStorage.getItem('cacheExtraTable')) {
                 cacheExtraTable.innerHTML = localStorage.getItem('cacheExtraTable');
+            }
+            
+            if (localStorage.getItem('comment')) {
+                for (var i=0; i<comment.length; i++) {
+                    if (comment[i].value === localStorage.getItem('comment')) {
+                        comment[i].checked = true;
+                    }
+                }
+            }
+            
+            if (localStorage.getItem('mainCurChoose')) {
+                for (var i=0; i<mainCurChoose.length; i++) {
+                    if (mainCurChoose[i].value === localStorage.getItem('mainCurChoose')) {
+                        mainCurChoose[i].checked = true;
+                    }
+                }
+            }
+            
+            if (localStorage.getItem('extraCurChoose')) {
+                for (var i=0; i<extraCurChoose.length; i++) {
+                    if (extraCurChoose[i].value === localStorage.getItem('extraCurChoose')) {
+                        extraCurChoose[i].checked = true;
+                    }
+                }
             }
 
             if (localStorage.getItem('mainPositionsCount')) {

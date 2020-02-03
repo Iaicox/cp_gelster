@@ -405,6 +405,7 @@ table td {
 
 .projects_list-item {
     display: block;
+    cursor: pointer;
     margin-bottom: 0;
 }
 .projects_list-item hr {
@@ -418,7 +419,6 @@ table td {
 .deleteProject:hover {
     font-weight: bold;
 }
-
 
 /*стили для режима распечатывания*/
 @media print {

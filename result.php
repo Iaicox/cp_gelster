@@ -114,12 +114,19 @@
             </table>
             <h3 class="preliminary-calc">Ниже приведены предварительные расчёты.</h3>
             <?php
-                $curency = $_POST['curency'];
-                $curencyClass;
-                if ($curency == 'евро') {
-                    $curencyClass = 'euro';
-                } else {
-                    $curencyClass = 'rub';
+                $mainCurChoose = $_POST['mainCurChoose'];
+                $extraCurChoose = $_POST['extraCurChoose'];
+                $mainCur = False;
+                $extraCur = False;
+                $mainColSpan=5;
+                $extraColSpan=5;
+                if ($mainCurChoose == 'rubAndEuro') {
+                    $mainCur = True;
+                    $mainColSpan=6;
+                }
+                if ($extraCurChoose == 'rubAndEuro') {
+                    $extraCur = True;
+                    $extraColSpan=6;
                 }
                 $mainMaterial = $_POST['mainMaterial'];
                 $additionalMaterial = $_POST['additionalMaterial'];
@@ -137,9 +144,9 @@
                         <th>Основные материалы</th>
                         <th>Кол-во</th>
                         <th>Ед.<br>изм.</th>
+                        <?php if ($mainCur) {echo '<th>Цена в <span class="euro">евро</span></th>';} ?>
                         <th>Цена в <span class='rub'>руб.</span></th>
-                        <th>Цена в <span class='euro'>евро</span></th>
-                        <th>Сумма, в <span class='euro'>евро</span><br>с НДС</th>
+                        <th>Сумма, в <span class='rub'>руб.</span><br>с НДС</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -154,14 +161,17 @@
                         $counterCol++;
                         $fourthMainValue = $mainMaterial["$counterRow, $counterCol"];
                         $counterCol++;
-                        $fifthMainValue = str_replace(' ', '', $mainMaterial["$counterRow, $counterCol"]);
+                        $sixthMainValue = str_replace(' ', '', $mainMaterial["$counterRow, $counterCol"]);
                         $counterCol++;
-                        $sixthMainValue = $fifthMainValue / $euroRate;
                         $seventhMainValue = $thirdMainValue * $sixthMainValue;
-                            
+                        
+                        if ($mainCur) {
+                            $fifthMainValue = $sixthMainValue / $euroRate;
+                            $fifthMainValue = number_format($fifthMainValue, 2, ',', ' ');
+                        }
+                        
                         $sumSixthMainValue += $seventhMainValue;
                         $thirdMainValue = number_format($thirdMainValue, 2, ',', ' ');
-                        $fifthMainValue = number_format($fifthMainValue, 2, ',', ' ');
                         $sixthMainValue = number_format(($sixthMainValue), 2, ',', ' ');
                         $seventhMainValue = number_format(($seventhMainValue), 2, ',', ' ');
                         
@@ -172,16 +182,16 @@
                             <th>$firstMainValue</th>
                             <td>$secondMainValue</td>
                             <td>$thirdMainValue</td>
-                            <td>$fourthMainValue</td>
-                            <td>$fifthMainValue</td>
-                            <td>$sixthMainValue</td>
+                            <td>$fourthMainValue</td>";
+                        if ($mainCur) {echo "<td>$fifthMainValue</td>";}
+                        echo "<td>$sixthMainValue</td>
                             <td>$seventhMainValue</td>
                         </tr>";
                     }
                     if ($highArrMainMat < 0) {
                         $sumSixthMainValueFin = number_format($sumSixthMainValue, 2, ',', ' ');
                         echo "<tr>
-                            <th class='sum' colspan='6'>Итого в <span class='euro'>евро</span>, с НДС:</th>
+                            <th class='sum' colspan='$mainColSpan'>Итого в <span class='rub'>руб.</span>, с НДС:</th>
                             <th class='sum'>$sumSixthMainValueFin</th>
                         </tr>";
                         $posMaterialCounter = $firstMainValue;
@@ -196,9 +206,9 @@
                         <th>Дополнительные материалы</th>
                         <th>Кол-во</th>
                         <th>Ед.<br>изм.</th>
+                        <?php if ($extraCur) {echo '<th>Цена в <span class="euro">евро</span></th>';} ?>
                         <th>Цена в <span class='rub'>руб.</span></th>
-                        <th>Цена в <span class='euro'>евро</span></th>
-                        <th>Сумма, в <span class='euro'>евро</span><br>с НДС</th>
+                        <th>Сумма, в <span class='rub'>руб.</span><br>с НДС</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -217,14 +227,17 @@
                         $counterCol++;
                         $fourthExtraValue = $additionalMaterial["$counterRow, $counterCol"];
                         $counterCol++;
-                        $fifthExtraValue = str_replace(' ', '', $additionalMaterial["$counterRow, $counterCol"]);
+                        $sixthExtraValue = str_replace(' ', '', $additionalMaterial["$counterRow, $counterCol"]);
                         $counterCol++;
-                        $sixthExtraValue = $fifthExtraValue / $euroRate;
                         $seventhExtraValue = $thirdExtraValue * $sixthExtraValue;
+                        
+                        if ($extraCur) {
+                            $fifthExtraValue = $sixthExtraValue / $euroRate;
+                            $fifthExtraValue = number_format($fifthExtraValue, 2, ',', ' ');
+                        }
                         
                         $sumSixthExtraValue += $seventhExtraValue;
                         $thirdExtraValue = number_format($thirdExtraValue, 2, ',', ' ');
-                        $fifthExtraValue = number_format($fifthExtraValue, 2, ',', ' ');
                         $sixthExtraValue = number_format(($sixthExtraValue), 2, ',', ' ');
                         $seventhExtraValue = number_format(($seventhExtraValue), 2, ',', ' ');
                         
@@ -235,16 +248,16 @@
                             <th>$firstExtraValue.</th>
                             <td>$secondExtraValue</td>
                             <td>$thirdExtraValue</td>
-                            <td>$fourthExtraValue</td>
-                            <td>$fifthExtraValue</td>
-                            <td>$sixthExtraValue</td>
+                            <td>$fourthExtraValue</td>";
+                        if ($extraCur) {echo "<td>$fifthExtraValue</td>";}
+                        echo "<td>$sixthExtraValue</td>
                             <td>$seventhExtraValue</td>
                         </tr>";
                     }
                     if ($highArrAdditMat < 0) {
                         $sumSixthExtraValueFin = number_format($sumSixthExtraValue, 2, ',', ' ');
                         echo "<tr>
-                            <th class='sum' colspan='6'>Итого в <span class='euro'>евро</span>, с НДС:</th>
+                            <th class='sum' colspan='$extraColSpan'>Итого в <span class='rub'>руб.</span>, с НДС:</th>
                             <th class='sum'>$sumSixthExtraValueFin</th>
                         </tr>";
                     }
@@ -260,7 +273,7 @@
                 <thead>
                     <tr>
                         <th><?php echo $firstSumValuesTables; ?>.</th>
-                        <th>Общая сумма по позициям в <span class='euro'>евро</span>, с НДС:</th>
+                        <th>Общая сумма по позициям в <span class='rub'>руб.</span>, с НДС:</th>
                         <th><?php echo $sumValueTables;?></th>
                     </tr>
                 </thead>
