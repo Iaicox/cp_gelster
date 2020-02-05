@@ -16,7 +16,7 @@
 <?php
     $dir = "C:/ОБМЕН ФАЙЛАМИ/Сайт ooogelingen/www/kp/tmp/";
     $files = scandir( $dir );
-    $time = time(); // Текущее время
+    $time = time(); // Текущее время 
     $life_file = 86400; // Время жизни файла в секундах
     $time = $time - $life_file;
     foreach( $files as $file ) {
@@ -63,7 +63,7 @@
     $euroRate = str_replace(',','.',$euroRate);
     $euroRate = floatval($euroRate);
 ?>
-<body>
+<body onload="markContentHeight();">
     <?php
     
     $pos1 = strpos($htmlData, '<div class="breadcrambs">');
@@ -73,7 +73,10 @@
     echo "<div hidden>$htmlData</div>";
     
     ?>
-<!--    <script>alert('Hi');</script>-->
+    <span class="mark mark-header"><hr></span>
+    <span class="mark mark-content-1"><hr></span>
+    <span class="mark mark-content-2"><hr></span>
+    <span class="mark mark-footer"></span>
     
     <div class="container">
         <button onclick="PastePageBreak(); window.print(); getPageBreaks();" style="position:fixed; top:50px; right:100px; padding:10px; cursor:pointer; border-radius:15px; border:0;">Печать</button>
@@ -389,8 +392,29 @@
         var headerHeight = 170,
             contentHeight = 805,
             footerHeight = 151,
+            centerX = document.documentElement.clientWidth / 2,
             needToScroll,
             pastePageBreak;
+        
+        function markContentHeight() {
+             var docHeight = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight,
+                                     document.body.offsetHeight, document.documentElement.offsetHeight,
+                                     document.body.clientHeight, document.documentElement.clientHeight),
+                 timesToPaste = Math.floor((docHeight-headerHeight-footerHeight)/(contentHeight-20)),
+                 lastMark = document.getElementsByClassName('mark-footer')[0],
+                 spanMark = document.createElement('span');
+            
+            spanMark.innerHTML = '<hr>';
+            spanMark.className = 'mark';
+            
+            if (timesToPaste > 1) {
+                for (var i=1; i<=timesToPaste; i++) {
+                    spanMark.className += 'mark-content-'+(i+1);
+                    spanMark.style.top = (170+805*(i+1))+'px';
+                    document.body.insertBefore(spanMark.cloneNode(), lastMark);
+                }
+            }
+        }
         
         function PastePageBreak() {
             var docHeight = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight,
@@ -398,7 +422,6 @@
                                      document.body.clientHeight, document.documentElement.clientHeight),
                 winHeight = document.documentElement.clientHeight,
                 scrollFromTop = window.pageYOffset,
-                centerX = document.documentElement.clientWidth / 2,
                 timesToPaste = Math.floor((docHeight-headerHeight-footerHeight)/(contentHeight-20));
             
             window.scrollTo(0,0)
@@ -426,8 +449,13 @@
                         pastePageBreak = document.elementFromPoint(centerX, contentHeight);
                     }
                 }
+                
+                if (['TD','td','TH','th','TR','tr'].indexOf(pastePageBreak.parentElement.tagName) !== -1) {
+                    pastePageBreak = pastePageBreak.parentElement;
+                }
+                
 
-                if (['TD','td','TH','th','img','IMG'].indexOf(pastePageBreak.tagName) !== -1) {
+                if (['TD','td','TH','th','img','IMG','TBODY','tbody','THEAD','thead'].indexOf(pastePageBreak.tagName) !== -1) {
                     while (!(pastePageBreak.tagName == 'TABLE')) {
                         pastePageBreak = pastePageBreak.parentElement;
                     }
