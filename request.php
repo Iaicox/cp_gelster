@@ -122,6 +122,8 @@
                         <option value="andrew_stanc.jpg">Андрей Станцель</option>
                         <option value="eugenia_aley.jpg">Евгения Алейникова</option>
                         <option value="ivan_log.jpg">Иван Логинов</option>
+                        <option value="anton_gol.jpg">Антон Голополосов</option>
+                        <option value="max_mal.jpg">Максим Малинин</option>
                     </select>
                 </fieldset><br>
                 <label>Название компании, с которой работаете:
