@@ -75,7 +75,6 @@
     ?>
     <span class="mark mark-header"><hr></span>
     <span class="mark mark-content-1"><hr></span>
-    <span class="mark mark-content-2"><hr></span>
     <span class="mark mark-footer"></span>
     
     <div class="container">
@@ -315,7 +314,7 @@
             usefulItems = [],
             itemSrc = document.getElementsByClassName('art_item'),
             mainText,
-            srcSeparator = window.location.hostname,
+            srcSeparator = window.location.hostname+':8080/kp',
             pageBreak = document.createElement('div'),
             chapter = document.createElement('div'),
             featuresTable = document.getElementsByClassName('caracter-table')[0],
@@ -408,10 +407,10 @@
             spanMark.className = 'mark';
             
             if (timesToPaste > 1) {
-                for (var i=1; i<=timesToPaste; i++) {
-                    spanMark.className += 'mark-content-'+(i+1);
+                for (var i=1; i<timesToPaste; i++) {
+                    spanMark.className += ' mark-content-'+(i+1);
                     spanMark.style.top = (170+805*(i+1))+'px';
-                    document.body.insertBefore(spanMark.cloneNode(), lastMark);
+                    document.body.insertBefore(spanMark.cloneNode(true), lastMark);
                 }
             }
         }
@@ -435,7 +434,7 @@
                         document.getElementsByClassName('pagebreak')[(i-1)].scrollIntoView(false);
                         window.scrollBy(0, 800);
                     }
-                    pastePageBreak = document.elementFromPoint(centerX, winHeight-1);
+                    pastePageBreak = document.elementFromPoint(centerX, winHeight-2);
                 } else {
                     if (i==0) {
                         window.scrollTo(centerX,headerHeight);
@@ -455,7 +454,7 @@
                 }
                 
 
-                if (['TD','td','TH','th','img','IMG','TBODY','tbody','THEAD','thead'].indexOf(pastePageBreak.tagName) !== -1) {
+                if (['TD','td','TH','th','TR','tr','img','IMG','TBODY','tbody','THEAD','thead'].indexOf(pastePageBreak.tagName) !== -1) {
                     while (!(pastePageBreak.tagName == 'TABLE')) {
                         pastePageBreak = pastePageBreak.parentElement;
                     }
