@@ -443,6 +443,66 @@ table td {
     bottom: 151px;
 }
 
+#toChooseItems {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 210mm;
+    max-height: 90%;
+    background: #fff;
+    padding: 30px;
+    padding-top: 0;
+}
+
+#toChooseItems>span {
+    font-size: 28px;
+    transform: translate(-50%);
+    display: block;
+    margin: 10px 0;
+    margin-left: 50%;
+    width: fit-content;
+}
+
+.choose_items_container {
+    display: flex;
+    flex-flow: row;
+    flex-wrap: wrap;
+    overflow-y: auto;
+    max-height: calc(100% - 60px);
+    border: #000 1px solid;
+    padding: 5px;
+}
+
+.choose_items_container img {
+    width: 100px;
+    height: 80%;
+}
+
+.item_wrapper {
+    margin: 0;
+    margin-right: calc(20% - 120px);
+    margin-bottom: 15px;
+    max-width: 100px;
+}
+.item_wrapper:nth-child(6n) {
+    margin-right: 0;
+}
+
+.item_wrapper > label {
+    display: block;
+    border: 0.1px solid #ccc;
+}
+
+.items_accept {
+    position: absolute;
+    top: 9px;
+    right: 30px;
+    padding: 10px;
+    cursor: pointer;
+}
+/* Для JS: $('img').on('dragstart', function(event) { event.preventDefault(); }); */
+
 /*стили для режима распечатывания*/
 @media print {
     .mark {

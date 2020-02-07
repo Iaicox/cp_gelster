@@ -63,7 +63,7 @@
     $euroRate = str_replace(',','.',$euroRate);
     $euroRate = floatval($euroRate);
 ?>
-<body onload="markContentHeight();">
+<body onload="showItems(); markContentHeight();">
     <?php
     
     $pos1 = strpos($htmlData, '<div class="breadcrambs">');
@@ -78,7 +78,7 @@
     <span class="mark mark-footer"></span>
     
     <div class="container">
-        <button onclick="PastePageBreak(); window.print(); getPageBreaks();" style="position:fixed; top:50px; right:100px; padding:10px; cursor:pointer; border-radius:15px; border:0;">Печать</button>
+        <button onclick="PastePageBreak(); window.print(); getPageBreaks();" style="position:fixed; top:50px; right:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Сохранить в PDF</button>
         <header class="header">
             <div class="divHeader"><img class="header_img" src="style/header.jpg"></div>
         </header>
@@ -292,6 +292,11 @@
             }
             ?>
         </main>
+        <div id="toChooseItems" contenteditable="false">
+            <span>Выбери артикулы:</span>
+            <input type="button" value="Подтвердить" class="items_accept" onclick="setItemsOnPage(acceptChoosenItems());">
+            <div class="choose_items_container"></div>
+        </div>
         <footer class="footer">
             <?php
             $manager = $_POST['chooseManager'];
@@ -305,13 +310,8 @@
             itemText1 = document.getElementsByClassName('entry-text')[0].innerHTML,
             itemText2 = document.getElementsByClassName('collapse')[0].innerHTML,
             mainImgSrc = document.getElementsByClassName('entry-photo')[0].children[0],
-            itemsTableContainer = document.getElementsByClassName('table-items')[0],
-            itemsTableBody = document.createElement('tbody'),
-            itemsTableTrImg = '',
-            itemsTableTrDesc = '',
             itemContainer = document.getElementsByClassName('collection-container')[0],
             items = itemContainer.children,
-            usefulItems = [],
             itemSrc = document.getElementsByClassName('art_item'),
             mainText,
             srcSeparator = window.location.hostname+':8080/kp',
@@ -320,7 +320,6 @@
             featuresTable = document.getElementsByClassName('caracter-table')[0],
             fabricName = items[0].children[0].children[0].src.split('/')[3],
             euroRate = <?php echo $euroRate?>;
-        var requestItems = <?php echo '"'.$_POST['itemsNumbers'].'"'?>.split(', ');
         
         pageBreak.className = 'pagebreak';
         chapter.className = 'chapter';
@@ -345,47 +344,99 @@
         document.getElementsByClassName('mainText')[0].innerHTML = mainText;
         
         /*    Артикулы    */
-        for (var j=0; j < requestItems.length; j++) {
-            for (var i=0; i < items.length; i++) {
-                if (items[i].children[1].innerText == requestItems[j]) {
-                    usefulItems[j] = items[i].children[0].innerHTML;
-                }
+        
+        function setItemsOnPage(items) {
+            var itemsTableBody = document.createElement('tbody'),
+                usefulItems = [],
+                requestItems = [],
+                itemsTableTrImg = '',
+                itemsTableTrDesc = '',
+                itemsTableContainer = document.getElementsByClassName('table-items')[0];
+            
+            for (var i=0; i<items.length; i++) {
+                usefulItems[i] = items[i].children[0].outerHTML;
+                requestItems[i] = items[i].children[3].innerText;
             }
-        }
-        
-        if (requestItems[0] == "") {
-            itemsTableContainer.remove();
-        }
-        
-        itemsTableContainer.innerHTML = '';
-        
-        for (var i=0; i<requestItems.length;) {
-            
-            itemsTableTrImg = "<tr>";
-            itemsTableTrDesc = "<tr>";
-            
-            for (var j=0; j<4; j++, i++) {
-                if (!(i == (requestItems.length))) {
-                    itemsTableTrImg += '<td class="art_item">' + usefulItems[i] + '</td>';
-                    itemsTableTrDesc += '<th><span>Арт. ' + requestItems[i] + '</th>';
+
+            itemsTableContainer.innerHTML = '';
+
+            for (var i=0; i<requestItems.length;) {
+
+                itemsTableTrImg = "<tr>";
+                itemsTableTrDesc = "<tr>";
+
+                for (var j=0; j<4; j++, i++) {
+                    if (!(i == (requestItems.length))) {
+                        itemsTableTrImg += '<td class="art_item">' + usefulItems[i] + '</td>';
+                        itemsTableTrDesc += '<th><span>Арт. ' + requestItems[i] + '</th>';
+                    }
                 }
+
+                itemsTableTrImg += "</tr>";
+                itemsTableTrDesc += "</tr>";
+                itemsTableBody.innerHTML += itemsTableTrImg + itemsTableTrDesc;
             }
-            
-            itemsTableTrImg += "</tr>";
-            itemsTableTrDesc += "</tr>";
-            itemsTableBody.innerHTML += itemsTableTrImg + itemsTableTrDesc;
-        }
-        
-        itemsTableContainer.innerHTML += '<tbody>' + itemsTableBody.innerHTML + '</tbody>';
-        
-        for (var i=0; i<itemSrc.length; i++) {
-            itemSrc[i].children[0].src = itemSrc[i].children[0].src.split(srcSeparator)[0] + 'www.ooogelingen.ru' + itemSrc[i].children[0].src.split(srcSeparator)[1];
+
+            itemsTableContainer.innerHTML += '<tbody>' + itemsTableBody.innerHTML + '</tbody>';
         }
         
         document.getElementById('featuresHeader').innerText += collectionName;
         document.getElementsByClassName('table-features')[0].children[1].innerHTML = featuresTable.innerHTML;
         
         
+        function showItems() {
+            var itemContainer = document.getElementsByClassName('choose_items_container')[0],
+                itemsList = document.getElementsByClassName('collection-container')[0].getElementsByClassName('col-auto'),
+                srcSeparator = window.location.hostname/*+':8080/kp'*/;
+
+
+            for (var i=0; i < itemsList.length; i++) {
+                var itemImg = itemsList[i].getElementsByTagName('img')[0].cloneNode(true),
+                    itemDesc = itemsList[i].getElementsByTagName('span')[0].cloneNode(true),
+                    itemInput = document.createElement('input'),
+                    itemBr = document.createElement('br'),
+                    itemWrapper = document.createElement('div'),
+                    itemLabel = document.createElement('label');
+
+                itemWrapper.className = 'item_wrapper';
+                itemInput.type = 'checkbox';
+                itemInput.name = 'item_' + i;
+                itemInput.value = itemDesc.innerHTML;
+                itemImg.src = itemImg.src.split(srcSeparator)[0] + 'www.ooogelingen.ru' + itemImg.src.split(srcSeparator)[1];
+                
+                itemLabel.appendChild(itemImg);
+                itemLabel.appendChild(itemBr);
+                itemLabel.appendChild(itemInput);
+                itemLabel.appendChild(itemDesc);
+                itemWrapper.appendChild(itemLabel);
+                itemContainer.appendChild(itemWrapper.cloneNode(true));
+            }
+
+            for (var i=0; i<document.getElementsByClassName('choose_items_container')[0].getElementsByTagName('img').length; i++) {
+                document.getElementsByClassName('choose_items_container')[0].getElementsByTagName('img')[i].ondragstart = function() { return false; };
+            }
+        }
+        
+        function acceptChoosenItems() {
+            var itemContainer = document.getElementsByClassName('choose_items_container')[0],
+                itemsList = itemContainer.getElementsByTagName('input'),
+                choosenItems = [];
+            
+            for (var i=0; i<itemsList.length; i++) {
+                var check = itemsList[i].checked;
+                
+                if (check) {
+                    choosenItems.push(itemsList[i].parentNode);
+                }
+            }
+            
+            if (choosenItems.length) {
+                document.getElementById('toChooseItems').style.display = 'none';
+                return(choosenItems);
+            } else {
+                alert("Вы не выбрали ни одного артикула.");
+            }
+        }
     </script>
     <script>
         var headerHeight = 170,

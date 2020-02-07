@@ -156,16 +156,6 @@
                         type="url" 
                     >
                 </label><br>
-                <label>Введите номера артикулов (через запятую):
-                    <input 
-                        name="itemsNumbers" 
-                        class="beginingForm" 
-                        placeholder="xxx, yyy, zzz"
-                        onchange="cacheMake(this.name, this.value);" 
-                        onfocus="select(this)" 
-                        type="text" 
-                    >
-                </label><br>
                 <label>Введите текущий курс евро:
                     <input 
                         name="euroRate" 
