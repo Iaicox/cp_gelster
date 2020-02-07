@@ -63,7 +63,7 @@
     $euroRate = str_replace(',','.',$euroRate);
     $euroRate = floatval($euroRate);
 ?>
-<body onload="showItems(); markContentHeight();">
+<body onload="showItems();">
     <?php
     
     $pos1 = strpos($htmlData, '<div class="breadcrambs">');
@@ -378,6 +378,8 @@
             }
 
             itemsTableContainer.innerHTML += '<tbody>' + itemsTableBody.innerHTML + '</tbody>';
+            
+            markContentHeight();
         }
         
         document.getElementById('featuresHeader').innerText += collectionName;
