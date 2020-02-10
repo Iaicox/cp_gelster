@@ -20,6 +20,7 @@
            cacheMainTableStringName='cacheMainTable',
            cacheExtraTable,
            cacheExtraTableStringName='cacheExtraTable',
+           cacheCommentWrapper,
            onChahgeValueName = "value",
            comment = document.getElementsByName('comment'),
            mainCurChoose = document.getElementsByName('mainCurChoose'),
@@ -190,7 +191,7 @@
                                     <option value="пог.м">пог.м</option>
                                 </select>
                             </label>
-                            <label><input class="list-price" name="mainMaterial[0, 4]" placeholder="Цена в выбранной валюте" onchange="this.setAttribute(onChahgeValueName, this.value); cacheMake('cacheMainTable', cacheMainTable.innerHTML);" type="text"></label><br>
+                            <label><input class="list-price" name="mainMaterial[0, 4]" placeholder="Цена в рублях" onchange="this.setAttribute(onChahgeValueName, this.value); cacheMake('cacheMainTable', cacheMainTable.innerHTML);" title="Стоимость указывать в рублях даже в случае выбора пункта &#34;Рубли и евро&#34;" type="text"></label><br>
                         </div>
                         <div id="mainBlockItem2"></div>
                         <input title="Добавить позицию" type="button" value="+" style="padding:5px 3px;font-size:30px;line-height:15px;vertical-align:top;position:absolute;top:0;left:-50px;width:30px;" onclick="addMainPosition(); cacheMake('cacheMainTable', cacheMainTable.innerHTML);">
@@ -222,7 +223,7 @@
                                     <option value="пог.м">пог.м</option> \
                                 </select> \
                             </label>';
-                        var mainPosFifthCol = '<label><input class="list-price"  name="mainMaterial['+mainPositionsCount+', '+(mainPositionsCountCols+4)+']" placeholder="Цена в выбранной валюте" onchange="this.setAttribute(onChahgeValueName, this.value); cacheMake(cacheMainTableStringName, cacheMainTable.innerHTML);" type="text"></label><br>';
+                        var mainPosFifthCol = '<label><input class="list-price"  name="mainMaterial['+mainPositionsCount+', '+(mainPositionsCountCols+4)+']" placeholder="Цена в рублях" onchange="this.setAttribute(onChahgeValueName, this.value); cacheMake(cacheMainTableStringName, cacheMainTable.innerHTML);" title="Стоимость указывать в рублях даже в случае выбора пункта &#34;Рубли и евро&#34;" type="text"></label><br>';
                         var nextMainElem = document.createElement('div');
                         nextMainElem.id = 'mainBlockItem'+(mainCounter+1);
                         
@@ -281,7 +282,7 @@
                                     <option value="пог.м">пог.м</option>
                                 </select>
                             </label>
-                            <label><input class="list-price" name="additionalMaterial[0, 4]" placeholder="Цена в рублях" onchange="this.setAttribute(onChahgeValueName, this.value); cacheMake('cacheExtraTable', cacheExtraTable.innerHTML);" type="text"></label><br>
+                            <label><input class="list-price" name="additionalMaterial[0, 4]" placeholder="Цена в рублях" onchange="this.setAttribute(onChahgeValueName, this.value); cacheMake('cacheExtraTable', cacheExtraTable.innerHTML);" title="Стоимость указывать в рублях даже в случае выбора пункта &#34;Рубли и евро&#34;" type="text"></label><br>
                         </div>
                         <div id="blockItem2"></div>
                         <input title="Добавить позицию" type="button" value="+" style="padding:5px 3px;font-size:30px;line-height:15px;vertical-align:top;position:absolute;top:0;left:-50px;width:30px;" onclick="addAdditionalPositions(); cacheMake('cacheExtraTable', cacheExtraTable.innerHTML);">
@@ -313,7 +314,7 @@
                                     <option value="пог.м">пог.м</option> \
                                 </select> \
                             </label>';
-                        var additionalPosFifthCol = '<label><input class="list-price"  name="additionalMaterial['+additionalPositionsCount+', '+(additionalPositionsCountCols+4)+']" placeholder="Цена в рублях" onchange="this.setAttribute(onChahgeValueName, this.value); cacheMake(cacheExtraTableStringName, cacheExtraTable.innerHTML);" type="text"></label><br>';
+                        var additionalPosFifthCol = '<label><input class="list-price"  name="additionalMaterial['+additionalPositionsCount+', '+(additionalPositionsCountCols+4)+']" placeholder="Цена в рублях" onchange="this.setAttribute(onChahgeValueName, this.value); cacheMake(cacheExtraTableStringName, cacheExtraTable.innerHTML);" title="Стоимость указывать в рублях даже в случае выбора пункта &#34;Рубли и евро&#34;" type="text"></label><br>';
                         var nextElem = document.createElement('div');
                         nextElem.id = 'blockItem'+(counter+1);
                         
@@ -359,14 +360,16 @@
                         }
                     }
                 </script>
-                <fieldset>
+                <fieldset class="comment_area">
                     <legend>Комментарий по доставке</legend>
                     <label><input name="comment" value="да" type="radio" checked onchange="cacheMake(this.name, this.value)">Доставка рассчитывается отдельно</label><br>
                     <label><input name="comment" value="нет" type="radio" onchange="cacheMake(this.name, this.value)">Нет комментария</label><br>
-                    <label>
-                        <input name="comment" value="свой" type="radio" onchange="cacheMake(this.name, this.value)">Другой комментарий:<br>
-                        <input type="text" name="commentText" onchange="cacheMake(this.name, this.value)">
+                    <label id="commentWrapper">
+                        <input name="comment" value="свой" type="radio" onchange="cacheMake(this.name, this.value)">Другой комментарий(ии):<br>
+                        <span>&mdash;&nbsp; </span><input class="comment-text" type="text" name="commentText[0]" onchange="cacheMake(this.name, this.value)">
                     </label>
+                    <input title="Добавить позицию" type="button" value="+" style="padding:5px 3px;font-size:30px;line-height:15px;vertical-align:top;position:absolute;top:100px;left:-50px;width:30px;" onclick="addComment(); cacheMake('cacheCommentWrapper', cacheCommentWrapper.innerHTML);">
+                    <input title="Удалить позицию" type="button" value="&ndash;" style="padding:5px 3px;font-size:30px;line-height:15px;vertical-align:top;position: absolute;top:132px;left:-50px;width:30px;" onclick="delComment(); cacheMake('cacheCommentWrapper', cacheCommentWrapper.innerHTML);">
                 </fieldset>
                 <br><input type="button" onclick="cacheMake(); saveProject();" value="Соханить проект" style="padding:5px;border-radius:10px;">
                 <br><input type="submit" onclick="cacheMake(); saveProject();" value="Создать КП" style="padding:5px;border-radius:10px;">
@@ -377,23 +380,70 @@
         </footer>
     </div>
     <script>
+        var commentCount = 1;
+        
+        function addComment() {
+            var input = document.createElement('input'),
+                span = document.createElement('span'),
+                br = document.createElement('br'),
+                parent = document.getElementById('commentWrapper');
+            
+            span.innerHTML = '&mdash;&nbsp; ';
+            input.className = 'comment-text';
+            input.type = 'text';
+            input.name = 'commentText['+commentCount+']';
+            input.onchange = function(){cacheMake(this.name, this.value)};
+            
+            parent.appendChild(br);
+            parent.appendChild(span);
+            parent.appendChild(input);
+            
+            ++commentCount;
+            return(commentCount);
+        }
+        
+        function delComment() {
+            var parent = document.getElementById('commentWrapper'),
+                elem = parent.lastChild;
+            
+            if (elem.nodeName == "#text") {
+                elem = elem.previousSibling;
+            }
+            
+            elem.previousSibling.remove();
+            elem.previousSibling.remove();
+            elem.remove();
+            
+            if (commentCount !== 0) {
+                --commentCount;
+            }
+            return(commentCount);
+        }
+        
         cacheManager = document.getElementsByName('chooseManager');
         cacheFormInput = document.getElementsByClassName('beginingForm');
         cacheMainTable = document.getElementById('mainPositions');
         cacheExtraTable = document.getElementById('additionalPositions');
+        cacheCommentWrapper = document.getElementById('commentWrapper');
         
         function getCurCache() {
             cacheManager[0].value = localStorage.getItem(cacheManager[0].name);
             for (var i=0; i<cacheFormInput.length; i++) {
                 cacheFormInput[i].value = localStorage.getItem(cacheFormInput[i].name);
             }
-            document.getElementsByName('commentText')[0].value = localStorage.getItem('commentText');
-
+            
             if (localStorage.getItem('cacheMainTable')) {
                 cacheMainTable.innerHTML = localStorage.getItem('cacheMainTable');
             }
             if (localStorage.getItem('cacheExtraTable')) {
                 cacheExtraTable.innerHTML = localStorage.getItem('cacheExtraTable');
+            }
+            if (localStorage.getItem('cacheCommentWrapper')) {
+                cacheCommentWrapper.innerHTML = localStorage.getItem('cacheCommentWrapper');
+            }
+            
+            for (var i=0; i<document.getElementsByClassName('comment-text').length; i++) {
+                document.getElementsByName('commentText['+i+']')[0].value = localStorage.getItem('commentText['+i+']');
             }
             
             if (localStorage.getItem('comment')) {

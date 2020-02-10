@@ -153,6 +153,10 @@ footer {
     margin:  0;
 }
 
+input {
+    border: 1px solid #adb5bd;
+}
+
 .site {
     bottom: 24mm;
 }
@@ -249,12 +253,27 @@ table td {
 }
 .table-items td {
     height: 4cm !important;
+    width: 4cm !important;
+    max-height: 4cm;
+    max-width: 4cm;
     text-align: center;
+    overflow: hidden;
+    position: relative;
 }
 .table-items td img {
     height: 100%;
     width: auto;
     vertical-align: bottom;
+}
+td.art_item::after {
+    display: block;
+    position: absolute;
+    content: "";
+    background: #fff;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 5px;
 }
 .linkToOtherItems {
     margin-top: 10px;
@@ -380,6 +399,12 @@ table td {
     padding: 5px!important;
     white-space: nowrap;
 }
+.comment_area {
+    position: relative;
+}
+.comment-text {
+    margin-bottom: 5px;
+}
 .comment {
     margin-left: 30px;
 }
@@ -470,6 +495,7 @@ table td {
     flex-wrap: wrap;
     overflow-y: auto;
     max-height: calc(100% - 60px);
+    height: 500px;
     border: #000 1px solid;
     padding: 5px;
 }

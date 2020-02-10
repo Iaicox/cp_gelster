@@ -288,7 +288,11 @@
             } elseif ($comment == 'нет') {                
             } else {
                 $commentText = $_POST['commentText'];
-                echo "<span class='comment'>&mdash; $commentText</span>";
+                $commentTextCounter = 0;
+                while ($commentTextCounter < count($commentText)) {
+                    echo "<span class='comment'>&mdash;$commentText[$commentTextCounter]</span><br>";
+                    $commentTextCounter++;
+                }
             }
             ?>
         </main>
@@ -314,7 +318,7 @@
             items = itemContainer.children,
             itemSrc = document.getElementsByClassName('art_item'),
             mainText,
-            srcSeparator = window.location.hostname+':8080/kp',
+            srcSeparator = window.location.host,
             pageBreak = document.createElement('div'),
             chapter = document.createElement('div'),
             featuresTable = document.getElementsByClassName('caracter-table')[0],
@@ -366,7 +370,7 @@
                 itemsTableTrDesc = "<tr>";
 
                 for (var j=0; j<4; j++, i++) {
-                    if (!(i == (requestItems.length))) {
+                    if (i < requestItems.length) {
                         itemsTableTrImg += '<td class="art_item">' + usefulItems[i] + '</td>';
                         itemsTableTrDesc += '<th><span>Арт. ' + requestItems[i] + '</th>';
                     }
@@ -379,6 +383,8 @@
 
             itemsTableContainer.innerHTML += '<tbody>' + itemsTableBody.innerHTML + '</tbody>';
             
+            setEdit("td");
+            setEdit("th");
             markContentHeight();
         }
         
@@ -388,9 +394,15 @@
         
         function showItems() {
             var itemContainer = document.getElementsByClassName('choose_items_container')[0],
-                itemsList = document.getElementsByClassName('collection-container')[0].getElementsByClassName('col-auto'),
-                srcSeparator = window.location.hostname/*+':8080/kp'*/;
-
+                itemsListSrc = document.getElementsByClassName('collection-container'),
+                itemsList = [],
+                srcSeparator = window.location.host;
+            
+            for (var i=0; i < itemsListSrc.length; i++) {
+                for (var j=0; j<itemsListSrc[i].getElementsByClassName('col-auto').length; j++) {
+                    itemsList.push(itemsListSrc[i].getElementsByClassName('col-auto')[j]);
+                }
+            }
 
             for (var i=0; i < itemsList.length; i++) {
                 var itemImg = itemsList[i].getElementsByTagName('img')[0].cloneNode(true),
