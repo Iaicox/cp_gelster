@@ -290,7 +290,7 @@
                 $commentText = $_POST['commentText'];
                 $commentTextCounter = 0;
                 while ($commentTextCounter < count($commentText)) {
-                    echo "<span class='comment'>&mdash;$commentText[$commentTextCounter]</span><br>";
+                    echo "<span class='comment'>&mdash;$commentText[$commentTextCounter]</span><div class='br'></div>";
                     $commentTextCounter++;
                 }
             }
