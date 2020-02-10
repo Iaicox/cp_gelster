@@ -560,13 +560,9 @@
         }
         
         function getPageBreaks() {
-            var getBreak = document.getElementsByClassName('pagebreak'),
-                getChapter = document.getElementsByClassName('chapter');
-            for (var i=0; i<getBreak.length; i++) {
-                getBreak[0].remove();
-                getChapter[0].remove();
-                getBreak[0].remove();
-                getChapter[0].remove();
+            while (document.getElementsByClassName('pagebreak')[0] !== undefined) {
+                document.getElementsByClassName('pagebreak')[0].remove();
+                document.getElementsByClassName('chapter')[0].remove();
             }
         }
     </script>

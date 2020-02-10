@@ -264,19 +264,35 @@ table td {
     height: 100%;
     width: auto;
     vertical-align: bottom;
+    /* transform: translate(-25%); */
 }
 td.art_item::after {
     display: block;
     position: absolute;
     content: "";
     background: #fff;
-    top: 0;
+    top: -1px;
     right: 0;
     bottom: 0;
     width: 5px;
+    border-right: 0.5pt solid #bbb;
+    border-top: 0.5pt solid #bbb;
+}
+td.art_item::before {
+    display: block;
+    position: absolute;
+    content: "";
+    background: #fff;
+    top: -1px;
+    left: 0;
+    bottom: 0;
+    width: 5px;
+    border-left: 0.5pt solid #bbb;
+    border-top: 0.5pt solid #bbb;
+    z-index: 1;
 }
 .linkToOtherItems {
-    margin-top: 10px;
+    padding-top: 10px;
     text-align: center;
     font-family: "PT Serif";
     font-size: 11pt;
