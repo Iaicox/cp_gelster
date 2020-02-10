@@ -105,7 +105,7 @@
                     <div class="linkToOtherItems"><span>Всю палитру можно посмотреть по ссылке: <?php echo "<a href='".$linkToItems."'>".$linkToItems."</a>";?></span></div>
                 </div>
             </div>
-            <br>
+            <div class="br"></div>
             <table class="table-features">
                 <thead>
                     <tr>
@@ -460,6 +460,9 @@
         }
     </script>
     <script>
+        /*  вставка pagebreak   */
+        
+        
         var headerHeight = 170,
             contentHeight = 805,
             footerHeight = 151,
@@ -558,6 +561,10 @@
                 pastePageBreakParent.insertBefore(chapter.cloneNode(true),pastePageBreak);
             }
         }
+        
+        
+        /*  вставка pagebreak   */
+        
         
         function getPageBreaks() {
             while (document.getElementsByClassName('pagebreak')[0] !== undefined) {

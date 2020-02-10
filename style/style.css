@@ -170,6 +170,12 @@ input {
     text-decoration: underline;
 }
 
+.br {
+    display: block;
+    width: 100%;
+    height: 19px;
+}
+
 .content {
     padding-left: 18mm;
     padding-right: 15mm;
@@ -227,8 +233,8 @@ p::first-letter {
 .mainContent-img img {
     width: 100%;
 }
-.mainText {
-    margin-bottom: 15px;
+.table_items-wrapper {
+    padding-top: 15px;
 }
 table {
     width: 100%;
@@ -338,7 +344,7 @@ td.art_item::before {
     font-size: 11pt;
     font-family: "PT Serif";
     color: #e36c0a;
-    margin: 35px 0 9px 40px;
+    padding: 35px 0 9px 40px;
 }
 .euro {
     color: #c00000;
