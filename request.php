@@ -381,6 +381,9 @@
     </div>
     <script>
         var commentCount = 1;
+        if (localStorage.getItem('commentCount')) {
+            commentCount = localStorage.getItem('commentCount');
+        }
         
         function addComment() {
             var input = document.createElement('input'),
@@ -399,6 +402,7 @@
             parent.appendChild(input);
             
             ++commentCount;
+            cacheMake('commentCount', commentCount);
             return(commentCount);
         }
         
@@ -407,16 +411,17 @@
                 elem = parent.lastChild;
             
             if (elem.nodeName == "#text") {
-                elem = elem.previousSibling;
+                elem = elem.previousElementSibling;
             }
             
-            elem.previousSibling.remove();
-            elem.previousSibling.remove();
+            elem.previousElementSibling.remove();
+            elem.previousElementSibling.remove();
             elem.remove();
             
             if (commentCount !== 0) {
                 --commentCount;
             }
+            cacheMake('commentCount', commentCount);
             return(commentCount);
         }
         

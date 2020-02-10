@@ -101,7 +101,7 @@
                         <div class="main_img_wrapper"></div>
                     </div>
                     <div class="mainText"></div>
-                    <table class="clear table-items"></table>
+                    <div class="clear table_items-wrapper"></div>
                     <div class="linkToOtherItems"><span>Всю палитру можно посмотреть по ссылке: <?php echo "<a href='".$linkToItems."'>".$linkToItems."</a>";?></span></div>
                 </div>
             </div>
@@ -353,7 +353,8 @@
                 requestItems = [],
                 itemsTableTrImg = '',
                 itemsTableTrDesc = '',
-                itemsTableContainer = document.getElementsByClassName('table-items')[0];
+                itemsTableContainer = document.getElementsByClassName('table_items-wrapper')[0],
+                fullItemsTable = '';
             
             for (var i=0; i<items.length; i++) {
                 usefulItems[i] = items[i].children[0].outerHTML;
@@ -361,6 +362,8 @@
             }
 
             itemsTableContainer.innerHTML = '';
+            
+            fullItemsTable += '<table class="table-items"><tbody>';
 
             for (var i=0; i<requestItems.length;) {
 
@@ -373,13 +376,19 @@
                         itemsTableTrDesc += '<th><span>Арт. ' + requestItems[i] + '</th>';
                     }
                 }
-
+                
                 itemsTableTrImg += "</tr>";
                 itemsTableTrDesc += "</tr>";
-                itemsTableBody.innerHTML += itemsTableTrImg + itemsTableTrDesc;
+                
+                if (((i%16) == 0) && (i !== requestItems.length)) {
+                    fullItemsTable += itemsTableTrImg + itemsTableTrDesc + '</tbody></table><table class="table-items"><tbody>';
+                } else {
+                    fullItemsTable += itemsTableTrImg + itemsTableTrDesc;
+                }
             }
-
-            itemsTableContainer.innerHTML += '<tbody>' + itemsTableBody.innerHTML + '</tbody>';
+            
+            fullItemsTable += '</tbody></table>';
+            itemsTableContainer.innerHTML += fullItemsTable;
             
             setEdit("td");
             setEdit("th");
@@ -512,6 +521,13 @@
                     }
                 }
                 
+                
+                if (['SPAN','span'].indexOf(pastePageBreak.tagName) !== -1) {
+                    if (pastePageBreak.className !== 'comment') {
+                        pastePageBreak = pastePageBreak.parentElement;
+                    }
+                }
+                
                 if (['TD','td','TH','th','TR','tr'].indexOf(pastePageBreak.parentElement.tagName) !== -1) {
                     pastePageBreak = pastePageBreak.parentElement;
                 }
@@ -522,6 +538,21 @@
                         pastePageBreak = pastePageBreak.parentElement;
                     }
                 }
+                
+                if (pastePageBreak.previousElementSibling && (['H3','h3'].indexOf(pastePageBreak.previousElementSibling.tagName) !== -1)) {
+                    pastePageBreak = pastePageBreak.previousElementSibling;
+                }
+                
+//                if ((pastePageBreak.className) || (pastePageBreak.parentElement.className) || (pastePageBreak.parentElement.parentElement.className)) {
+//                    if (pastePageBreak.className == 'linkToOtherItems') {
+//                        pastePageBreak = pastePageBreak.previousElementSibling;
+//                    } else if (pastePageBreak.parentElement.className == 'linkToOtherItems') {
+//                        pastePageBreak = pastePageBreak.parentElement.previousElementSibling;
+//                    } else if (pastePageBreak.parentElement.parentElement.className == 'linkToOtherItems') {
+//                        pastePageBreak = pastePageBreak.parentElement.parentElement.previousElementSibling;
+//                    }
+//                }
+                
                 pastePageBreakParent = pastePageBreak.parentElement;
                 pastePageBreakParent.insertBefore(pageBreak.cloneNode(true),pastePageBreak);
                 pastePageBreakParent.insertBefore(chapter.cloneNode(true),pastePageBreak);

@@ -249,7 +249,7 @@ table td {
 }
 .table-items {
     margin: 0 auto;
-    width: auto;
+    width: min-content;
 }
 .table-items td {
     height: 4cm !important;
