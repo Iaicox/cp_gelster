@@ -336,8 +336,6 @@
         document.getElementsByClassName('entry-photo')[0].children[0].src = mainImgSrc.src;
         featuresTable.children[0].children[0].remove();
         
-        
-        
         for (var i=0; i<document.getElementsByClassName('flooring_name').length; i++) {
             document.getElementsByClassName('flooring_name')[i].innerHTML = flooringName;
         }
