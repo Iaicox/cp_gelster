@@ -69,6 +69,13 @@
     right: 0;
 }
 
+.projects_search {
+    position: absolute;
+    top: 8px;
+    right: 0;
+    width: 45%;
+}
+
 @media print {
     button {
         display: none;
@@ -211,10 +218,14 @@ input {
 .loweracse {
     text-transform: lowercase;
 }
-p {
+p,
+.mainText>ul {
     text-align: justify;
     font-family: "PT Serif";
     font-size: 11.5pt;
+}
+.mainText>ul {
+    padding-left: 20px;
 }
 p::first-letter {
     padding-left: 35px !important;
@@ -278,7 +289,7 @@ td.art_item::after {
     content: "";
     background: #fff;
     top: -1px;
-    right: 0;
+    right: -1px;
     bottom: 0;
     width: 5px;
     border-right: 0.5pt solid #bbb;
@@ -290,7 +301,7 @@ td.art_item::before {
     content: "";
     background: #fff;
     top: -1px;
-    left: 0;
+    left: -1px;
     bottom: 0;
     width: 5px;
     border-left: 0.5pt solid #bbb;
@@ -335,7 +346,7 @@ td.art_item::before {
     width: 60px;
 }
 .list-price {
-    width: 155px;
+    width: 150px;
 }
 .beginingForm {
     width: 300px;
@@ -351,11 +362,6 @@ td.art_item::before {
 }
 .rub {
     color: #0070c0;
-}
-.table-main_materials,
-.table-sum_tables,
-.table-addit_materials {
-    margin-bottom: 20px;
 }
 .table-main_materials tr:nth-child(1) th,
 .table-sum_tables tr:nth-child(1) th,
@@ -475,6 +481,7 @@ td.art_item::before {
     position: absolute;
     left: 0;
     right: 0;
+    z-index: 10;
 }
 
 .mark-header {
@@ -500,6 +507,7 @@ td.art_item::before {
     background: #fff;
     padding: 30px;
     padding-top: 0;
+    z-index: 1000;
 }
 
 #toChooseItems>span {
@@ -540,6 +548,7 @@ td.art_item::before {
 .item_wrapper > label {
     display: block;
     border: 0.1px solid #ccc;
+    cursor: pointer;
 }
 
 .items_accept {
@@ -549,6 +558,15 @@ td.art_item::before {
     padding: 10px;
     cursor: pointer;
 }
+.items-choose_all {
+    right: auto;
+    left: 30px;
+}
+.items-choose_none {
+    right: auto;
+    left: 135px;
+} 
+
 /* Для JS: $('img').on('dragstart', function(event) { event.preventDefault(); }); */
 
 /*стили для режима распечатывания*/

@@ -5,11 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Заполните форму КП</title>
+    <link rel="manifest" href="/manifest.webmanifest">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel="stylesheet" href="style/style.css">
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script async src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <script async src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script src="localStorageDB.js"></script>
 </head>
 
 <body>
@@ -29,6 +31,12 @@
        function cacheMake( key, value ) {
            localStorage.setItem(key, value);
        }
+       
+       function replaceComma(elem) {
+           if (elem.value.indexOf(',') !== -1) {
+               elem.value = elem.value.replace(',', '.');
+           }
+       }
     </script>
     <div class="container p-0">
         <header class="header">
@@ -41,13 +49,15 @@
                 
                 <fieldset id="projects" class="projects_list">
                     <legend>Выбери проект:</legend>
+                    <input class="projects_search" type="search" placeholder="Поиск по проектам" oninput="findProject(this.value.toUpperCase());">
                 </fieldset>
                 <script>
                     var existProjects = document.getElementById('projects'),
                         newProject = document.createElement('label'),
                         projectsList = [],
                         projectsContent = [],
-                        projectsListCheck = false;
+                        projectsListCheck = false,
+                        readyProjects = [];
                     
                     if (localStorage.getItem('projectsList') !== (undefined || null)) {
                         projectsList = localStorage.getItem('projectsList').split(',');
@@ -63,22 +73,27 @@
                           
                           for (var i=0; i<projectsList.length; i++) {
                             if (i == idElem) {
-                                newProject.innerHTML = '<span class="deleteProject" onclick="deleteProject(this)" title="Удалить проект">&mdash;</span>&nbsp;<input onclick="chooseProject(this);" name="currentProject" value="'+projectsList[i]+'" type="radio" checked>&nbsp;'+projectsList[i]+'<hr>';
+                                newProject.innerHTML = '<span class="deleteProject" style="color: #fff;">&mdash;</span>&nbsp;<input onclick="chooseProject(this);" name="currentProject" value="'+projectsList[i]+'" type="radio" checked>&nbsp;'+projectsList[i]+'<hr>';
                             } else {
                                 newProject.innerHTML = '<span class="deleteProject" onclick="deleteProject(this)" title="Удалить проект">&mdash;</span>&nbsp;<input onclick="chooseProject(this);" name="currentProject" value="'+projectsList[i]+'" type="radio">&nbsp;'+projectsList[i]+'<hr>';
                             }
                             
                             existProjects.appendChild(newProject.cloneNode(true));
                           }
+                          readyProjects = document.getElementsByClassName('projects_list-item');
+                          return(readyProjects);
                       }
                     }
                     
                     function deleteProject(elem) {
-                        var element = elem.nextSibling.value,
+                        var element = elem.nextElementSibling.value,
                             idElem = projectsList.indexOf(element);
+                        obj_db.del(projectsList[idElem]);
                         projectsList.splice(idElem,1);
                         projectsContent.splice(idElem,1);
                         elem.parentNode.parentNode.removeChild(elem.parentNode);
+                        cacheMake('projectsList', projectsList.toString());
+                        cacheMake('projectsContent', projectsContent.toString());
                     }
                     
                     function saveProject() {
@@ -107,14 +122,43 @@
                         contentElem = JSON.parse(contentElem);
                         
                         localStorage.clear();
+                        
                         for (var prop in contentElem) {
                             cacheMake(prop, contentElem[prop]);
                         }
+                        
                         cacheMake('projectsList', projectsList.toString());
                         cacheMake('projectsContent', projectsContent.toString());
                         location.reload();
                     } 
-                    setProject();
+                    
+                    readyProjects = setProject();
+                    
+                    function findProject(searchParam) {
+                        var readyProjectsVal = [],
+                            counterAlign = [];
+
+                        for (var i=0; i<readyProjects.length; i++) {
+                            readyProjectsVal[i] = readyProjects[i].innerText.toUpperCase().replace('—  ','');
+                            if (readyProjectsVal[i].indexOf(searchParam) !== -1) {
+                                counterAlign.push(i);
+                            }
+                        }
+                        
+                        for (var i=0; i<readyProjects.length; i++) {
+                            if (counterAlign.indexOf(i) !== -1) {
+                                readyProjects[i].style.display = 'block';
+                            } else {
+                                readyProjects[i].style.display = 'none';
+                            }
+                        }
+                        
+                        if (searchParam == '') {
+                            for (var i=0; i<readyProjects.length; i++) {
+                                readyProjects[i].style.display = 'block';
+                            }
+                        }
+                    }
                 </script>
                 <fieldset>
                     <legend>Выбрать ФИО менеджера</legend>
@@ -183,15 +227,15 @@
                         <div id="mainBlockItem1">
                             <label><input class="list-counter" name="mainMaterial[0, 0]" type="text" readonly value="1."></label>
                             <label><input class="list-name" name="mainMaterial[0, 1]" placeholder="Наименование" onchange="this.setAttribute(onChahgeValueName, this.value); cacheMake('cacheMainTable', cacheMainTable.innerHTML);" type="text"></label>
-                            <label><input class="list-number" name="mainMaterial[0, 2]" placeholder="Кол-во" onchange="this.setAttribute(onChahgeValueName, this.value); cacheMake('cacheMainTable', cacheMainTable.innerHTML);" type="text"></label>
+                            <label><input class="list-number" name="mainMaterial[0, 2]" placeholder="Кол-во" onchange="replaceComma(this); this.setAttribute(onChahgeValueName, this.value); cacheMake('cacheMainTable', cacheMainTable.innerHTML);" type="text"></label>
                             <label>
                                 <select name="mainMaterial[0, 3]" onchange="cacheMake(this.name, this.value); cacheMake('cacheMainTable', cacheMainTable.innerHTML);">
-                                    <option value="шт." selected>шт.</option>
-                                    <option value="м&sup2;">м&sup2;</option>
+                                    <option value="шт.">шт.</option>
+                                    <option value="м&sup2;" selected>м&sup2;</option>
                                     <option value="пог.м">пог.м</option>
                                 </select>
                             </label>
-                            <label><input class="list-price" name="mainMaterial[0, 4]" placeholder="Цена в рублях" onchange="this.setAttribute(onChahgeValueName, this.value); cacheMake('cacheMainTable', cacheMainTable.innerHTML);" title="Стоимость указывать в рублях даже в случае выбора пункта &#34;Рубли и евро&#34;" type="text"></label><br>
+                            <label><input class="list-price" name="mainMaterial[0, 4]" placeholder="Цена в рублях" onchange="replaceComma(this); this.setAttribute(onChahgeValueName, this.value); cacheMake('cacheMainTable', cacheMainTable.innerHTML);" title="Стоимость указывать в рублях даже в случае выбора пункта &#34;Рубли и евро&#34;" type="text"></label><br>
                         </div>
                         <div id="mainBlockItem2"></div>
                         <input title="Добавить позицию" type="button" value="+" style="padding:5px 3px;font-size:30px;line-height:15px;vertical-align:top;position:absolute;top:0;left:-50px;width:30px;" onclick="addMainPosition(); cacheMake('cacheMainTable', cacheMainTable.innerHTML);">
@@ -215,15 +259,15 @@
                     function addMainPosition() {
                         var mainPosFirstCol = '<label><input class="list-counter" name="mainMaterial['+mainPositionsCount+', '+mainPositionsCountCols+']" type="text" readonly value="'+(mainPositionsCount+1)+'."></label>';
                         var mainPosSecondCol = '<label><input class="list-name" name="mainMaterial['+mainPositionsCount+', '+(mainPositionsCountCols+1)+']" placeholder="Наименование" onchange="this.setAttribute(onChahgeValueName, this.value); cacheMake(cacheMainTableStringName, cacheMainTable.innerHTML);" type="text"></label>';
-                        var mainPosThirdCol = '<label><input class="list-number" name="mainMaterial['+mainPositionsCount+', '+(mainPositionsCountCols+2)+']" placeholder="Кол-во" onchange="this.setAttribute(onChahgeValueName, this.value); cacheMake(cacheMainTableStringName, cacheMainTable.innerHTML);" type="text"></label>';
+                        var mainPosThirdCol = '<label><input class="list-number" name="mainMaterial['+mainPositionsCount+', '+(mainPositionsCountCols+2)+']" placeholder="Кол-во" onchange="replaceComma(this); this.setAttribute(onChahgeValueName, this.value); cacheMake(cacheMainTableStringName, cacheMainTable.innerHTML);" type="text"></label>';
                         var mainPosFourthCol = '<label> \
                                 <select name="mainMaterial['+mainPositionsCount+', '+(mainPositionsCountCols+3)+']" onchange="cacheMake(this.name, this.value); cacheMake(cacheMainTableStringName, cacheMainTable.innerHTML);"> \
-                                    <option value="шт." selected>шт.</option> \
-                                    <option value="м&sup2;">м&sup2;</option> \
+                                    <option value="шт.">шт.</option> \
+                                    <option value="м&sup2;" selected>м&sup2;</option> \
                                     <option value="пог.м">пог.м</option> \
                                 </select> \
                             </label>';
-                        var mainPosFifthCol = '<label><input class="list-price"  name="mainMaterial['+mainPositionsCount+', '+(mainPositionsCountCols+4)+']" placeholder="Цена в рублях" onchange="this.setAttribute(onChahgeValueName, this.value); cacheMake(cacheMainTableStringName, cacheMainTable.innerHTML);" title="Стоимость указывать в рублях даже в случае выбора пункта &#34;Рубли и евро&#34;" type="text"></label><br>';
+                        var mainPosFifthCol = '<label><input class="list-price"  name="mainMaterial['+mainPositionsCount+', '+(mainPositionsCountCols+4)+']" placeholder="Цена в рублях" onchange="replaceComma(this); this.setAttribute(onChahgeValueName, this.value); cacheMake(cacheMainTableStringName, cacheMainTable.innerHTML);" title="Стоимость указывать в рублях даже в случае выбора пункта &#34;Рубли и евро&#34;" type="text"></label><br>';
                         var nextMainElem = document.createElement('div');
                         nextMainElem.id = 'mainBlockItem'+(mainCounter+1);
                         
@@ -274,7 +318,7 @@
                         <div id="blockItem1">
                             <label><input class="list-counter" name="additionalMaterial[0, 0]" type="text" readonly value="1."></label>
                             <label><input class="list-name" name="additionalMaterial[0, 1]" placeholder="Наименование" onchange="this.setAttribute(onChahgeValueName, this.value); cacheMake('cacheExtraTable', cacheExtraTable.innerHTML);" type="text"></label>
-                            <label><input class="list-number" name="additionalMaterial[0, 2]" placeholder="Кол-во" onchange="this.setAttribute(onChahgeValueName, this.value); cacheMake('cacheExtraTable', cacheExtraTable.innerHTML);" type="text"></label>
+                            <label><input class="list-number" name="additionalMaterial[0, 2]" placeholder="Кол-во" onchange="replaceComma(this); this.setAttribute(onChahgeValueName, this.value); cacheMake('cacheExtraTable', cacheExtraTable.innerHTML);" type="text"></label>
                             <label>
                                 <select name="additionalMaterial[0, 3]" onchange="cacheMake(this.name, this.value); cacheMake('cacheExtraTable', cacheExtraTable.innerHTML);">
                                     <option value="шт." selected>шт.</option>
@@ -282,7 +326,7 @@
                                     <option value="пог.м">пог.м</option>
                                 </select>
                             </label>
-                            <label><input class="list-price" name="additionalMaterial[0, 4]" placeholder="Цена в рублях" onchange="this.setAttribute(onChahgeValueName, this.value); cacheMake('cacheExtraTable', cacheExtraTable.innerHTML);" title="Стоимость указывать в рублях даже в случае выбора пункта &#34;Рубли и евро&#34;" type="text"></label><br>
+                            <label><input class="list-price" name="additionalMaterial[0, 4]" placeholder="Цена в рублях" onchange="replaceComma(this); this.setAttribute(onChahgeValueName, this.value); cacheMake('cacheExtraTable', cacheExtraTable.innerHTML);" title="Стоимость указывать в рублях даже в случае выбора пункта &#34;Рубли и евро&#34;" type="text"></label><br>
                         </div>
                         <div id="blockItem2"></div>
                         <input title="Добавить позицию" type="button" value="+" style="padding:5px 3px;font-size:30px;line-height:15px;vertical-align:top;position:absolute;top:0;left:-50px;width:30px;" onclick="addAdditionalPositions(); cacheMake('cacheExtraTable', cacheExtraTable.innerHTML);">
@@ -306,7 +350,7 @@
                     function addAdditionalPositions() {
                         var additionalPosFirstCol = '<label><input class="list-counter" name="additionalMaterial['+additionalPositionsCount+', '+additionalPositionsCountCols+']" type="text" readonly value="'+(additionalPositionsCount+1)+'."></label>';
                         var additionalPosSecondCol = '<label><input class="list-name" name="additionalMaterial['+additionalPositionsCount+', '+(additionalPositionsCountCols+1)+']" placeholder="Наименование" onchange="this.setAttribute(onChahgeValueName, this.value); cacheMake(cacheExtraTableStringName, cacheExtraTable.innerHTML);" type="text"></label>';
-                        var additionalPosThirdCol = '<label><input class="list-number" name="additionalMaterial['+additionalPositionsCount+', '+(additionalPositionsCountCols+2)+']" placeholder="Кол-во" onchange="this.setAttribute(onChahgeValueName, this.value); cacheMake(cacheExtraTableStringName, cacheExtraTable.innerHTML);" type="text"></label>';
+                        var additionalPosThirdCol = '<label><input class="list-number" name="additionalMaterial['+additionalPositionsCount+', '+(additionalPositionsCountCols+2)+']" placeholder="Кол-во" onchange="replaceComma(this); this.setAttribute(onChahgeValueName, this.value); cacheMake(cacheExtraTableStringName, cacheExtraTable.innerHTML);" type="text"></label>';
                         var additionalPosFourthCol = '<label> \
                                 <select name="additionalMaterial['+additionalPositionsCount+', '+(additionalPositionsCountCols+3)+']" onchange="cacheMake(this.name, this.value); cacheMake(cacheExtraTableStringName, cacheExtraTable.innerHTML);"> \
                                     <option value="шт." selected>шт.</option> \
@@ -314,7 +358,7 @@
                                     <option value="пог.м">пог.м</option> \
                                 </select> \
                             </label>';
-                        var additionalPosFifthCol = '<label><input class="list-price"  name="additionalMaterial['+additionalPositionsCount+', '+(additionalPositionsCountCols+4)+']" placeholder="Цена в рублях" onchange="this.setAttribute(onChahgeValueName, this.value); cacheMake(cacheExtraTableStringName, cacheExtraTable.innerHTML);" title="Стоимость указывать в рублях даже в случае выбора пункта &#34;Рубли и евро&#34;" type="text"></label><br>';
+                        var additionalPosFifthCol = '<label><input class="list-price"  name="additionalMaterial['+additionalPositionsCount+', '+(additionalPositionsCountCols+4)+']" placeholder="Цена в рублях" onchange="replaceComma(this); this.setAttribute(onChahgeValueName, this.value); cacheMake(cacheExtraTableStringName, cacheExtraTable.innerHTML);" title="Стоимость указывать в рублях даже в случае выбора пункта &#34;Рубли и евро&#34;" type="text"></label><br>';
                         var nextElem = document.createElement('div');
                         nextElem.id = 'blockItem'+(counter+1);
                         
@@ -371,7 +415,6 @@
                     <input title="Добавить позицию" type="button" value="+" style="padding:5px 3px;font-size:30px;line-height:15px;vertical-align:top;position:absolute;top:100px;left:-50px;width:30px;" onclick="addComment(); cacheMake('cacheCommentWrapper', cacheCommentWrapper.innerHTML);">
                     <input title="Удалить позицию" type="button" value="&ndash;" style="padding:5px 3px;font-size:30px;line-height:15px;vertical-align:top;position: absolute;top:132px;left:-50px;width:30px;" onclick="delComment(); cacheMake('cacheCommentWrapper', cacheCommentWrapper.innerHTML);">
                 </fieldset>
-                <br><input type="button" onclick="cacheMake(); saveProject();" value="Соханить проект" style="padding:5px;border-radius:10px;">
                 <br><input type="submit" onclick="cacheMake(); saveProject();" value="Создать КП" style="padding:5px;border-radius:10px;">
             </form>
         </main>

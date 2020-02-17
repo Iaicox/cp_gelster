@@ -1,0 +1,19 @@
+{
+  "lang": "ru",
+  "dir": "ltr",
+  "name": "Autocompiler BP Gelster",
+  "description": "BP - Business Proposal. Auto filling information from website ooogelingen.ru",
+  "short_name": "BP Gelster",
+  "icons": [{
+    "src": "img/icon.png",
+    "sizes": "192x192"
+  }],
+  "scope": "/",
+  "start_url": "/request.php",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "theme_color": "#FFFFFF",
+  "background_color": "#AAAAAA",
+  "permissions": ["unlimitedStorage"],
+  "author": "Ilia Safin"
+}
