@@ -480,9 +480,12 @@
                     return false;
                 };
             }
-            if (!Object.keys(changingOnPage).length == 0) {
-                loadProject();
-            }
+            
+            setTimeout( function() {
+                if (!Object.keys(changingOnPage).length == 0) {
+                    loadProject();
+                }
+            }, 100);
         }
 
         function chooseAll() {

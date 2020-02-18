@@ -50,10 +50,7 @@
             }, 100);
             return;
         }
-        var request = db.transaction("projects", "readwrite").objectStore("projects").getKey(key);
-        request.onsuccess = function() {
-            transaction.objectStore("projects").delete(request.result);
-        };
+        db.transaction("projects", "readwrite").objectStore("projects").delete(key);
     }
     
     window['obj_db'] = {
