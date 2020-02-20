@@ -64,9 +64,13 @@
     position: absolute;
     max-height: 127px;
     width: 50%;
-    overflow-y: auto;
     top: 7px;
     right: 0;
+}
+
+#projects {
+    overflow-y: auto;
+    height: 80px;
 }
 
 .projects_search {
