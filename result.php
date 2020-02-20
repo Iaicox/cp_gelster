@@ -111,7 +111,7 @@
             <table class="table-features">
                 <thead>
                     <tr>
-                        <th colspan="2"><span>Технические характеристики <span class="capitalize" id="featuresHeader"></span>:</span></th>
+                        <th><span>Технические характеристики <span class="capitalize" id="featuresHeader"></span>:</span></th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -432,14 +432,20 @@
         function addToChooseItems() {
             document.getElementById('toChooseItems').style.display = 'block';
         }
-
-        var curFeaturesTable = document.getElementsByClassName('table-features')[0];
+        
+        /*      Талица характеристик    */
+        var curFeaturesTable = document.getElementsByClassName('table-features')[0],
+            curFeaturesTableTd = curFeaturesTable.getElementsByTagName('td');
         document.getElementById('featuresHeader').innerText += collectionName;
         curFeaturesTable.children[1].innerHTML = featuresTable.innerHTML;
-        for (var i = 1; i < curFeaturesTable.getElementsByTagName('tr').length; i++) {
-            curFeaturesTable.getElementsByTagName('tr')[i].ondblclick = delFeature;
-            curFeaturesTable.getElementsByTagName('tr')[i].title = "Дважды кликните по элементу для удаления";
+        fixFeaturesColSpan();
+        for (var i=0; i<curFeaturesTableTd.length; i++) {
+            curFeaturesTableTd[i].ondblclick = delFeature;
+            curFeaturesTableTd[i].title = "Дважды кликните по элементу для удаления";
         }
+        curFeaturesTable.getElementsByTagName('th')[0].title = "Дважды клинкните для корректировки длины заголовка";
+        curFeaturesTable.getElementsByTagName('th')[0].ondblclick = fixFeaturesColSpan;
+        /*      /Талица характеристик    */
 
         function showItems() {
             var itemContainer = document.getElementsByClassName('choose_items_container')[0],
@@ -505,20 +511,27 @@
         }
 
         function delFeature(elem) {
-            elem.path[1].style.display = 'none';
+            elem.target.style.display = 'none';
         }
-
+        
+        function fixFeaturesColSpan() {
+            var maxColSpan = 2;
+            for (var i=0; i<curFeaturesTable.getElementsByTagName('tr').length; i++) {
+                if (curFeaturesTable.getElementsByTagName('tr')[i].children.length > maxColSpan) {maxColSpan = curFeaturesTable.getElementsByTagName('tr')[i].children.length;}
+            }
+            curFeaturesTable.getElementsByTagName('th')[0].setAttribute('colspan', maxColSpan);
+        };
     </script>
     <script>
         /*  вставка pagebreak   */
-
-
         var headerHeight = 170,
             contentHeight = 805,
             footerHeight = 151,
             centerX = document.documentElement.clientWidth / 2,
             needToScroll,
-            pastePageBreak;
+            breaksCounter = 0,
+            pastePageBreak,
+            pastePageBreakParent;
 
         function markContentHeight() {
             var docHeight = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight,
@@ -542,41 +555,7 @@
         }
 
         function PastePageBreak() {
-            var docHeight = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight,
-                    document.body.offsetHeight, document.documentElement.offsetHeight,
-                    document.body.clientHeight, document.documentElement.clientHeight),
-                winHeight = document.documentElement.clientHeight,
-                scrollFromTop = window.pageYOffset,
-                timesToPaste = Math.floor((docHeight - headerHeight - footerHeight) / (contentHeight - 20));
-
-            window.scrollTo(0, 0)
-
-            for (var i = 0; i < timesToPaste; i++) {
-                if (winHeight < (headerHeight + contentHeight)) {
-                    needToScroll = headerHeight + contentHeight - winHeight + 20;
-                    if (i == 0) {
-                        window.scrollTo(centerX, needToScroll);
-                    } else {
-                        document.getElementsByClassName('pagebreak')[(i - 1)].scrollIntoView(false);
-                        window.scrollBy(0, 800);
-                    }
-                    pastePageBreak = document.elementFromPoint(centerX, winHeight - 2);
-                } else {
-                    if (i == 0) {
-                        window.scrollTo(centerX, headerHeight);
-                        pastePageBreak = document.elementFromPoint(centerX, contentHeight);
-                    } else if (i == (timesToPaste - 1)) {
-                        window.scrollTo(0, docHeight);
-                        pastePageBreak = document.elementFromPoint(centerX, document.getElementsByClassName('pagebreak')[(i - 1)].getBoundingClientRect().top + contentHeight);
-                    } else {
-                        document.getElementsByClassName('pagebreak')[(i - 1)].scrollIntoView(false);
-                        window.scrollBy(0, 800);
-                        pastePageBreak = document.elementFromPoint(centerX, contentHeight);
-                    }
-                }
-
-                if (pastePageBreak.className == 'footer_img') {break;}
-                
+            function InsertBreaks() {
                 if (['SPAN', 'span'].indexOf(pastePageBreak.tagName) !== -1) {
                     if (pastePageBreak.className !== 'comment') {
                         pastePageBreak = pastePageBreak.parentElement;
@@ -597,34 +576,63 @@
                 if (pastePageBreak.previousElementSibling && (['H3', 'h3'].indexOf(pastePageBreak.previousElementSibling.tagName) !== -1)) {
                     pastePageBreak = pastePageBreak.previousElementSibling;
                 }
-
-                /*  Отключение разделения переносом ссылки после таблицы с артикулами   */
-
-                /*if ((pastePageBreak.className) || (pastePageBreak.parentElement.className) || (pastePageBreak.parentElement.parentElement.className)) {
-                    if (pastePageBreak.className == 'linkToOtherItems') {
-                        pastePageBreak = pastePageBreak.previousElementSibling;
-                    } else if (pastePageBreak.parentElement.className == 'linkToOtherItems') {
-                        pastePageBreak = pastePageBreak.parentElement.previousElementSibling;
-                    } else if (pastePageBreak.parentElement.parentElement.className == 'linkToOtherItems') {
-                        pastePageBreak = pastePageBreak.parentElement.parentElement.previousElementSibling;
-                    }
-                }*/
-
+                
                 pastePageBreakParent = pastePageBreak.parentElement;
                 pastePageBreakParent.insertBefore(pageBreak.cloneNode(true), pastePageBreak);
                 pastePageBreakParent.insertBefore(chapter.cloneNode(true), pastePageBreak);
             }
-        }
+            var content = document.getElementsByClassName('content')[0],
+                footer = document.getElementsByTagName('footer')[0],
+                marks = document.getElementsByClassName('mark');
+            
+            for (var i=0; i<marks.length; i++) {
+                marks[i].hidden = true;
+            }
+            
+            footer.style.display = 'none';
+            
+            var docHeight = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight,
+                    document.body.offsetHeight, document.documentElement.offsetHeight,
+                    document.body.clientHeight, document.documentElement.clientHeight),
+                winHeight = document.documentElement.clientHeight,
+                scale = winHeight/docHeight,
+                body = document.body,
+                insert;
+            
+            body.style.transform = 'scale('+scale+')';
+            content.scrollIntoView(true);
 
-        /*  вставка pagebreak   */
+            while (!(breaksCounter == -1)) {
+                if (breaksCounter>0) {
+                    pastePageBreak = document.elementFromPoint(centerX, document.getElementsByClassName('pagebreak')[(breaksCounter - 1)].getBoundingClientRect().top + (contentHeight*scale));
+                } else {
+                    pastePageBreak = document.elementFromPoint(centerX, (contentHeight*scale));
+                }
+                if ((pastePageBreak == null) || (pastePageBreak.tagName == 'HTML')) {
+                    breaksCounter = -1;
+                } else {
+                    insert = InsertBreaks();
+                    breaksCounter++;
+                }
+            }
+            
+            for (var i=0; i<marks.length; i++) {
+                marks[i].hidden = false;
+            }
+            
+            body.removeAttribute('style')
+            footer.style.display = '';
+        }
+        /*  /вставка pagebreak   */
 
         function getPageBreaks() {
             while (document.getElementsByClassName('pagebreak')[0] !== undefined) {
                 document.getElementsByClassName('pagebreak')[0].remove();
                 document.getElementsByClassName('chapter')[0].remove();
             }
+            
+            breaksCounter = 0;
         }
-
     </script>
     <script>
         function createCaretPlacer(atStart) {
@@ -727,69 +735,12 @@
             }
             document.getElementById('toChooseItems').style.display = 'none';
         }
-        /*
-
-        function saveChangingProj(elem) {
-            var e = window.event,
-                obj = e.target||e.srcElement;
-            
-            while (obj.className != ('intro' || 'mainContent-heading' || 'collection-name-block' || 'mainText' || 'table-features')) {
-                obj = obj.parentNode;
-            }
-            
-            if (obj_db.get(curProject, function(value) {
-                    console.log(value);
-                })) {
-                changingOnPage = obj_db.get(curProject, function(value) {
-                    console.log(value);
-                });
-            }
-
-            changingOnPage[((obj.className) || ((function(elem) {
-                for (key in window) {
-                    if (window[key] == elem) return (key);
-                }
-            })()))] = ((obj.innerHTML) || (elem));
-
-            obj_db.set(curProject, changingOnPage);
-        }
-
-        function callback(mutationList, observer, elem) {
-            mutationList.forEach((mutation) => {
-                switch (mutation.type) {
-                    case 'childList':
-                        saveChangingProj();
-                        break;
-                    case 'attributes':
-                        saveChangingProj();
-                        break;
-                }
-            });
-        }
-        
-        var observerOptions = {
-            childList: true,
-            attributes: true,
-            subtree: true
-        };
-        var observer = new MutationObserver(callback),
-            targetNode = [];
-        
-        targetNode[0] = document.querySelector(".intro");
-        targetNode[1] = document.querySelector(".mainContent-heading");
-        targetNode[2] = document.querySelector(".collection-name-block");
-        targetNode[3] = document.querySelector(".mainText");
-        targetNode[4] = document.querySelector(".table-features");
-        
-        for (var i=0; i<5; i++) {
-            observer.observe(targetNode[i], observerOptions);
-        }*/
-
     </script>
     <button onclick="PastePageBreak(); window.print(); getPageBreaks();" style="position:fixed; top:50px; right:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Сохранить в PDF</button>
     <button onclick="saveProject();" style="position:fixed; top:50px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Сохранить изменения<br>в проекте</button>
-    <button onclick="addToChooseItems();" style="position:fixed; top:150px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Добавить артикулы</button>
-    <button onclick="chooseNone();addToChooseItems();" style="position:fixed; top:200px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Перевыбрать артикулы</button>
+    <button onclick="obj_db.del(curProject);" style="position:fixed; top:110px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Удалить сохраненные<br>изменения</button>
+    <button onclick="addToChooseItems();" style="position:fixed; top:200px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Добавить артикулы</button>
+    <button onclick="chooseNone();addToChooseItems();" style="position:fixed; top:250px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Перевыбрать артикулы</button>
 </body>
 
 </html>
