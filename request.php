@@ -47,9 +47,10 @@
                 <h1>Заполни форму:</h1>
                 <input type="hidden" name="maxFileSize" value="30000">
                 
-                <fieldset id="projects" class="projects_list">
+                <fieldset class="projects_list">
                     <legend>Выбери проект:</legend>
                     <input class="projects_search" type="search" placeholder="Поиск по проектам" oninput="findProject(this.value.toUpperCase());">
+                    <div id="projects"></div>
                 </fieldset>
                 <script>
                     var existProjects = document.getElementById('projects'),
