@@ -7,7 +7,7 @@
     <title>Итоговый вид КП</title>
     <link rel="manifest" href="/manifest.webmanifest">
     <link rel="stylesheet" href="style/style.css">
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="style/jquery/jquery-3.3.1.min.js"></script>
     <script src="localStorageDB.js"></script>
 </head>
 
