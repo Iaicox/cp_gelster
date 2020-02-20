@@ -422,6 +422,16 @@
             if (choosenItems.length) {
                 document.getElementById('toChooseItems').style.display = 'none';
                 return (choosenItems);
+            } else if (changingOnPage.curItems != undefined) {
+                var labels = itemContainer.getElementsByTagName('label');
+                for (var i=0; i<labels.length; i++) {
+                    for (var j=0; j<changingOnPage.curItems.length; j++) {
+                        if (labels[i].innerHTML == changingOnPage.curItems[j]) {
+                            choosenItems.push(labels[i]);
+                        }
+                    }
+                }
+                return (choosenItems);
             } else {
                 alert("Вы не выбрали ни одного артикула.");
             }
@@ -655,11 +665,14 @@
 
         var placeCaretAtStart = createCaretPlacer(true);
         var placeCaretAtEnd = createCaretPlacer(false);
-
-        var arrDesignMode = ['p', 'img', 'td', 'th', 'span', 'h1', 'h2', 'h3', 'ul', 'table'];
-        for (var i = 0; i < arrDesignMode.length; i++) {
-            setEdit(arrDesignMode[i]);
+        
+        function SetDesignMode() {
+            var arrDesignMode = ['p', 'img', 'td', 'th', 'span', 'h1', 'h2', 'h3', 'ul', 'table'];
+            for (var i = 0; i < arrDesignMode.length; i++) {
+                setEdit(arrDesignMode[i]);
+            }
         }
+        SetDesignMode();
 
         function setEdit(elem) {
             $(elem)
@@ -675,6 +688,9 @@
                     $(e.currentTarget).attr('contenteditable', 'false');
                     if ($(e.currentTarget)[0].localName == 'p') {
                         $(e.currentTarget)[0].style.display = 'block';
+                    }
+                    if ($(e.currentTarget)[0].getElementsByTagName('br').length>0) {
+                        $(e.currentTarget)[0].getElementsByTagName('br')[0].remove();
                     }
                 });
         }
@@ -732,6 +748,7 @@
                 }
             }
             document.getElementById('toChooseItems').style.display = 'none';
+            var setDesignMode = SetDesignMode();
         }
     </script>
     <button onclick="PastePageBreak(); window.print(); getPageBreaks();" style="position:fixed; top:50px; right:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Сохранить в PDF</button>

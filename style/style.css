@@ -571,8 +571,6 @@ td.art_item::before {
     left: 135px;
 } 
 
-/* Для JS: $('img').on('dragstart', function(event) { event.preventDefault(); }); */
-
 /*стили для режима распечатывания*/
 @media print {
     .mark {
@@ -591,6 +589,7 @@ td.art_item::before {
         left: 0;
         width: 210mm;
         opacity: 0.5;
+        z-index: 100;
     }
 
     .divHeader {
@@ -600,9 +599,18 @@ td.art_item::before {
         left: 0;
         width: 210mm;
         opacity: 0.5;
+        z-index: 100;
     }
     
     .chapter {
         margin-top: 45mm;
+    }
+}
+
+@-moz-document url-prefix() {
+    @media print {
+        .chapter {
+            padding-top: 45mm;
+        }
     }
 }
