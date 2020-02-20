@@ -412,7 +412,6 @@
             var itemContainer = document.getElementsByClassName('choose_items_container')[0],
                 itemsList = itemContainer.getElementsByTagName('input'),
                 choosenItems = [];
-
             for (var i = 0; i < itemsList.length; i++) {
                 var check = itemsList[i].checked;
 
@@ -420,7 +419,6 @@
                     choosenItems.push(itemsList[i].parentNode);
                 }
             }
-
             if (choosenItems.length) {
                 document.getElementById('toChooseItems').style.display = 'none';
                 return (choosenItems);
