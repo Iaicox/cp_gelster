@@ -36,8 +36,19 @@
                elem.value = elem.value.replace(',', '.');
            }
        }
+       
+       function showMainButtons(elem) {
+           var buttons = document.getElementsByClassName('main_button');
+           
+           if (elem.value == 'michael_smu.jpg') {
+               buttons[0].hidden = false;
+           } else {
+               buttons[0].hidden = true;
+           }
+       }
     </script>
     <div class="container p-0">
+        <button class="main_button" hidden onclick="var win = window.open('http://localhost/managers/add_manager.php', 'Добавить менеджера', 'left=400,top=300,width=500,height=300,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes');" style="position:absolute; top:200px; left:-20%; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Добавить / Удалить <br> менеджера</button>
         <header class="header">
             <div class="divHeader"><img class="header_img" src="style/header.jpg"></div>
         </header>
@@ -162,14 +173,7 @@
                 </script>
                 <fieldset>
                     <legend>Выбрать ФИО менеджера</legend>
-                    <select name="chooseManager" onchange="cacheMake(this.name, this.value);">
-                        <option value="michael_smu.jpg">Михаил Смущенко</option>
-                        <option value="andrew_stanc.jpg">Андрей Станцель</option>
-                        <option value="eugenia_aley.jpg">Евгения Алейникова</option>
-                        <option value="ivan_log.jpg">Иван Логинов</option>
-                        <option value="anton_gol.jpg">Антон Голополосов</option>
-                        <option value="max_mal.jpg">Максим Малинин</option>
-                    </select>
+                    <?php include 'managers/managers.htm';?>
                 </fieldset><br>
                 <label>Название компании, с которой работаете:
                     <input 
@@ -544,6 +548,7 @@
         }
         
         getCurCache();
+        showMainButtons(document.getElementsByName('chooseManager')[0]);
     </script>
 </body>
 

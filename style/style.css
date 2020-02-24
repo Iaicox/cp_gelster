@@ -293,9 +293,9 @@ td.art_item::after {
     content: "";
     background: #fff;
     top: 2px;
-    right: 0;
+    right: 0.5pt;
     bottom: 2px;
-    width: 5px;
+    width: 4px;
 }
 td.art_item::before {
     display: block;
@@ -303,9 +303,9 @@ td.art_item::before {
     content: "";
     background: #fff;
     top: 2px;
-    left: 0;
+    left: 0.5pt;
     bottom: 2px;
-    width: 5px;
+    width: 4px;
     z-index: 1;
 }
 .linkToOtherItems {
