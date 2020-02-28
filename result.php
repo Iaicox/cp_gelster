@@ -458,7 +458,9 @@
             document.getElementById('toChooseItems').style.display = 'block';
         }
         
-        /*      Талица характеристик    */
+        /*    /Артикулы    */
+        
+        /*    Талица характеристик    */
         var curFeaturesTable = document.getElementsByClassName('table-features')[0],
             curFeaturesTableTd = curFeaturesTable.getElementsByTagName('td');
         document.getElementById('featuresHeader').innerText += collectionName;
