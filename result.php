@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="ru">
-
+<?php $client = $_POST['client'];?>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Итоговый вид КП</title>
+    <title><?php echo "КП_".$client."_от_".date("d.m.y");?></title>
     <link rel="manifest" href="/manifest.webmanifest">
     <link rel="stylesheet" href="style/style.css">
     <script src="style/jquery/jquery-3.3.1.min.js"></script>
@@ -14,22 +14,6 @@
 <?php
     $dir = "C:/ОБМЕН ФАЙЛАМИ/Сайт ooogelingen/www/kp/tmp/";
     $files = scandir( $dir );
-    $time = time(); // Текущее время 
-    $life_file = 86400; // Время жизни файла в секундах
-    $time = $time - $life_file;
-    foreach( $files as $file ) {
-        if( $file != "." && $file != ".." )
-        {
-            $file = $dir.$file;
-            $filemtime = filemtime( $file ); // Время создания или модификации файла
-
-            // Удаляем, если нужно
-            if( $filemtime <= $time )
-            {
-                unlink( $file );
-            }
-        }
-    }
     $arr = [
       'января',
       'февраля',
@@ -45,7 +29,6 @@
       'декабря'
     ];
     $month = date('n')-1;
-    $client = $_POST['client'];
     $choosenFlooring = $_POST['chooseKindOfFlooring'];
     $choosenCharMain = $_POST['chooseKindChar'];
     $choosenCharSub = $_POST['chooseKindChar2'];
