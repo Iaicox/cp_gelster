@@ -669,7 +669,7 @@
         var placeCaretAtEnd = createCaretPlacer(false);
         
         function SetDesignMode() {
-            var arrDesignMode = ['p', 'img', 'td', 'th', 'span', 'h1', 'h2', 'h3', 'ul', 'table'];
+            var arrDesignMode = ['p', 'img', 'td', 'th', 'span', 'h1', 'h2', 'h3', 'ul', 'ol', 'table'];
             for (var i = 0; i < arrDesignMode.length; i++) {
                 setEdit(arrDesignMode[i]);
             }

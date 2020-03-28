@@ -223,7 +223,8 @@ input {
     text-transform: lowercase;
 }
 p,
-.mainText>ul {
+.mainText>ul,
+.mainText>ol {
     text-align: justify;
     font-family: "PT Serif";
     font-size: 11.5pt;
