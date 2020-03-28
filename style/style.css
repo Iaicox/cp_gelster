@@ -229,7 +229,8 @@ p,
     font-family: "PT Serif";
     font-size: 11.5pt;
 }
-.mainText>ul {
+.mainText>ul, 
+.mainText>ol {
     padding-left: 20px;
 }
 p::first-letter {
