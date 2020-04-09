@@ -305,7 +305,7 @@
             itemText2 = '',
             mainImgSrc = document.getElementsByClassName('entry-photo')[0].children[0],
             itemContainer = document.getElementsByClassName('collection-container')[0],
-            items = itemContainer.children,
+            items = itemContainer.getElementsByClassName('col-auto'),
             itemSrc = document.getElementsByClassName('art_item'),
             mainText,
             srcSeparator = window.location.host,
