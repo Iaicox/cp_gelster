@@ -438,6 +438,7 @@ td.art_item::before {
 }
 .comment {
     margin-left: 30px;
+    display: block;
 }
 .collection-name-block {
     margin-bottom: 10px;

@@ -587,6 +587,12 @@
                     pastePageBreak = pastePageBreak.previousElementSibling;
                 }
                 
+                if ([''].indexOf(pastePageBreak.tagName) !== -1) {
+                    while (!(pastePageBreak.tagName == 'TABLE')) {
+                        pastePageBreak = pastePageBreak.parentElement;
+                    }
+                }
+                
                 pastePageBreakParent = pastePageBreak.parentElement;
                 pastePageBreakParent.insertBefore(pageBreak.cloneNode(true), pastePageBreak);
                 pastePageBreakParent.insertBefore(chapter.cloneNode(true), pastePageBreak);
