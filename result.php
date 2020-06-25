@@ -1,6 +1,12 @@
+<?php
+header('Content-Type: text/html; charset=utf-8');
+include 'simple_html_dom.php';
+?>
 <!DOCTYPE html>
 <html lang="ru">
-<?php $client = $_POST['client'];?>
+<?php
+$client = $_POST['client'];
+?>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,13 +53,40 @@
 
 <body onload="showItems();">
     <?php
+    $htmlNew = str_get_html($htmlData);
+
+    # $pos1 = strpos($htmlData, 'breadcrambs">');
+    # $tableStr = substr($htmlData, $pos1);
+    # $htmlData = explode('</main>', $tableStr)[0];
     
-    $pos1 = strpos($htmlData, 'breadcrambs">');
-    $tableStr = substr($htmlData, $pos1);
-    $htmlData = explode('</main>', $tableStr)[0];
-    
-    echo '<div hidden><div class="'.$htmlData.'</div>';
-    
+    echo "<div hidden>\r\n";
+    if ($htmlNew->innertext!='') {
+        foreach($htmlNew->find('h1') as $element) {
+            echo $element."\r\n";
+        }
+        foreach($htmlNew->find('h2') as $element) {
+            echo $element."\r\n";
+        }
+        foreach($htmlNew->find('.entry-text') as $element) {
+            echo $element."\r\n";
+        }
+        foreach($htmlNew->find('#collapseExample') as $element) {
+            echo $element."\r\n";
+        }
+        foreach($htmlNew->find('.entry-photo') as $element) {
+            echo $element."\r\n";
+        }
+        foreach($htmlNew->find('.collection-container') as $element) {
+            echo $element."\r\n";
+        }
+        foreach($htmlNew->find('.art_item') as $element) {
+            echo $element."\r\n";
+        }
+        foreach($htmlNew->find('.caracter-table') as $element) {
+            echo $element."\r\n";
+        }
+    }
+    echo "</div>\r\n";
     ?>
     <span contenteditable="false" class="mark mark-header">
         <hr></span>
@@ -151,20 +184,20 @@
                         $sixthMainValue = str_replace(' ', '', $mainMaterial["$counterRow, $counterCol"]);
                         $counterCol++;
                         $seventhMainValue = $thirdMainValue * $sixthMainValue;
-                        
+
                         if ($mainCur) {
                             $fifthMainValue = $sixthMainValue / $euroRate;
                             $fifthMainValue = number_format($fifthMainValue, 2, ',', ' ');
                         }
-                        
+
                         $sumSixthMainValue += $seventhMainValue;
                         $thirdMainValue = number_format($thirdMainValue, 2, ',', ' ');
                         $sixthMainValue = number_format(($sixthMainValue), 2, ',', ' ');
                         $seventhMainValue = number_format(($seventhMainValue), 2, ',', ' ');
-                        
+
                         $counterRow++;
                         $highArrMainMat--;
-                        
+
                         echo "<tr>
                             <th>$firstMainValue</th>
                             <td>$secondMainValue</td>
@@ -204,7 +237,7 @@
                     $counterRow=0;
                     $counter=0;
                     $sumSixthExtraValue=0;
-                    
+
                     while ($highArrAdditMat >= 0) {
                         $counterCol=0;
                         $firstExtraValue = ++$posMaterialCounter;
@@ -273,7 +306,7 @@
             $commentText = "Доставка до объекта рассчитывается отдельно.";
             if ($comment == 'да') {
                 echo "<span class='comment'>&mdash; $commentText</span>";
-            } elseif ($comment == 'нет') {                
+            } elseif ($comment == 'нет') {
             } else {
                 $commentText = $_POST['commentText'];
                 $commentTextCounter = 0;
@@ -300,7 +333,7 @@
     </div>
     <script>
         var collectionName = document.getElementsByTagName('h1')[0].innerHTML.toLowerCase(),
-            flooringName = document.getElementsByTagName('h2')[0].innerHTML,
+            flooringName = document.getElementsByTagName('h2')[1].innerHTML,
             itemText1 = document.getElementsByClassName('entry-text')[0].innerHTML,
             itemText2 = '',
             mainImgSrc = document.getElementsByClassName('entry-photo')[0].children[0],
@@ -312,7 +345,7 @@
             pageBreak = document.createElement('div'),
             chapter = document.createElement('div'),
             featuresTable = document.getElementsByClassName('caracter-table')[0],
-            fabricName = items[0].children[0].children[0].src.split('/')[3],
+            fabricName = items[0].children[0].children[0] ? items[0].children[0].children[0].src.split('/')[3] : items[0].children[0].src.split('/')[3],
             euroRate = <?php echo $euroRate?>;
 
         if (document.getElementsByClassName('collapse')[0]) {
@@ -335,8 +368,8 @@
 
         /*    Склонение в родит. падеже заголовка    */
         var rodPadArr = flooringName.split(' '),
-            nominal_i = ['линолеум','натуральный','универсальный','коммерческий','спортивный','акустический','противоскользящий','противоскользящие','токопроводящий','сценический','гетерогенный','гомогенный','покрытие','покрытия','мармолеум','плитка','плитка-пвх','пвх-плитка','подложка','настенное','пробковое','пробковая','спортивный','паркет','резиновое','иглопробивной','ковролин','петлевой','петлевая','модульная','ковровая','плинтус','напольный','широкий','белый','деревянный','гибкий','мягкий','высокий','эластичный','коннелюрный','раздельный','толстый','цветной','хдф-плинтус','пвх-плинтус','накладки','накладка','завершающий','профиль','химия','строительная','ровнитель','грубый','финишный','грунтовка','клей','разметка','спортивная','краска','мастика','очиститель','потолки','подвесные','решетка','решетки','грязезащита','ковер','коврик','коврики','мат','маты','ковры','финские','модульные','грязезащитный','грязезащитные','придверная','придверные','алюминиевый','алюминиевые','металлическая','металлические','стальная','стальные'],
-            nominal_r = ['линолеума','натурального','универсального','коммерческого','спортивного','акустического','противоскользящего','противоскользящих','токопроводящего','сценического','гетерогенного','гомогенного','покрытия','покрытий','мармолеума','плитки','плитки-пвх','пвх-плитки','подложки','настенного','пробкового','пробковой','спортивного','паркета','резинового','иглопробивного','ковролина','петлевого','петлевой','модульной','ковровой','плинтуса','напольного','широкого','белого','деревянного','гибкого','мягкого','высокого','эластичного','коннелюрного','раздельного','толстого','цветного','хдф-плинтуса','пвх-плинтуса','накладок','накладки','завершающего','профиля','химии','строительной','ровнителя','грубого','финишного','грунтовки','клея','разметки','спортивной','краски','мастики','очистителя','потолков','подвесных','решетки','решеток','грязезащиты','ковра','коврика','ковриков','мата','матов','ковров','финских','модульных','грязезащитного','грязезащитных','придверной','придверных','алюминиевого','алюминиевых','металлической','металлических','стальной','стальных'];
+            nominal_i = ['линолеум','натуральный','универсальный','коммерческий','спортивный','акустический','противоскользящий','противоскользящие','токопроводящий','сценический','гетерогенный','гомогенный','покрытие','покрытия','мармолеум','плитка','плитка-пвх','пвх-плитка','подложка','настенное','пробковое','пробковая','спортивный','паркет','резиновое','иглопробивной','ковролин','петлевой','петлевая','модульная','ковровая','плинтус','напольный','широкий','белый','деревянный','гибкий','мягкий','высокий','эластичный','коннелюрный','раздельный','толстый','цветной','хдф-плинтус','пвх-плинтус','накладки','накладка','завершающий','профиль','химия','строительная','ровнитель','грубый','финишный','грунтовка','клей','разметка','спортивная','краска','мастика','очиститель','потолки','подвесные','решетка','решетки','грязезащита','ковер','коврик','коврики','мат','маты','ковры','финские','модульные','грязезащитный','грязезащитные','придверная','придверные','алюминиевый','алюминиевые','металлическая','металлические','стальная','стальные', 'кварц-виниловая'],
+            nominal_r = ['линолеума','натурального','универсального','коммерческого','спортивного','акустического','противоскользящего','противоскользящих','токопроводящего','сценического','гетерогенного','гомогенного','покрытия','покрытий','мармолеума','плитки','плитки-пвх','пвх-плитки','подложки','настенного','пробкового','пробковой','спортивного','паркета','резинового','иглопробивного','ковролина','петлевого','петлевой','модульной','ковровой','плинтуса','напольного','широкого','белого','деревянного','гибкого','мягкого','высокого','эластичного','коннелюрного','раздельного','толстого','цветного','хдф-плинтуса','пвх-плинтуса','накладок','накладки','завершающего','профиля','химии','строительной','ровнителя','грубого','финишного','грунтовки','клея','разметки','спортивной','краски','мастики','очистителя','потолков','подвесных','решетки','решеток','грязезащиты','ковра','коврика','ковриков','мата','матов','ковров','финских','модульных','грязезащитного','грязезащитных','придверной','придверных','алюминиевого','алюминиевых','металлической','металлических','стальной','стальных', 'кварц-виниловой'];
         
         for (var i=0; i<rodPadArr.length; i++) {
             var idPad = nominal_i.indexOf(rodPadArr[i].toLowerCase());
