@@ -29,6 +29,9 @@ header('Content-Type: text/html; charset=utf-8');
            mainCurChoose = document.getElementsByName('mainCurChoose'),
            extraCurChoose = document.getElementsByName('extraCurChoose');
        
+       let cur_protocol = location.protocol
+       let cur_host = location.host
+
        function cacheMake( key, value ) {
            localStorage.setItem(key, value);
        }
@@ -50,7 +53,7 @@ header('Content-Type: text/html; charset=utf-8');
        }
     </script>
     <div class="container p-0">
-        <button class="main_button" hidden onclick="var win = window.open('http://localhost/managers/add_manager.php', 'Добавить менеджера', 'left=400,top=300,width=500,height=300,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes');" style="position:absolute; top:200px; left:-20%; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Добавить / Удалить <br> менеджера</button>
+        <button class="main_button" hidden onclick="var win = window.open(`${cur_protocol}\/\/${cur_host}/managers/add_manager.php`, 'Добавить менеджера', 'left=400,top=300,width=500,height=300,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes');" style="position:absolute; top:200px; left:-20%; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Добавить / Удалить <br> менеджера</button>
         <header class="header">
             <div class="divHeader"><img class="header_img" src="style/header.jpg"></div>
         </header>
