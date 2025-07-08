@@ -1,0 +1,8 @@
+header old - 170  | 45mm
+header new - 198  | 53mm => 8
+
+footer old - 151  |	40mm
+footer new - 104  |	28mm => 12
+
+52.7mm	| 200
+27.8mm	| 106
