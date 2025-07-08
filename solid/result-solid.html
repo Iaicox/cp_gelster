@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Результат КП - SolidJS</title>
+  <link rel="stylesheet" href="../style/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../style/style.css">
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module">
+    import { For } from "./lib/solid.js";
+    import { render } from "./lib/web.js";
+
+    function Result() {
+      const client = localStorage.getItem('client') || '';
+      const clientName = localStorage.getItem('clientName') || '';
+      const materials = JSON.parse(localStorage.getItem('materials') || '[]');
+      return (
+        <div class="container p-3">
+          <h1>Коммерческое предложение для {client}</h1>
+          <p>Контактное лицо: {clientName}</p>
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>Название</th>
+                <th>Кол-во</th>
+                <th>Ед.</th>
+                <th>Цена</th>
+              </tr>
+            </thead>
+            <tbody>
+              <For each={materials}>{m => (
+                <tr>
+                  <td>{m.name}</td>
+                  <td>{m.qty}</td>
+                  <td>{m.unit}</td>
+                  <td>{m.price}</td>
+                </tr>
+              )}</For>
+            </tbody>
+          </table>
+          <button type="button" class="btn btn-secondary" onclick={() => window.print()}>Сохранить в PDF</button>
+        </div>
+      );
+    }
+    render(Result, document.getElementById('app'));
+  </script>
+</body>
+</html>
