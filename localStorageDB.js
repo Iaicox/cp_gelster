@@ -10,7 +10,7 @@
             v: ''
         },
         request = indexedDB.open('projects', 1);
-    
+
     request.onsuccess = function (evt) {
         db = this.result;
     };
@@ -22,7 +22,7 @@
     request.onupgradeneeded = function (event) {
         db = null;
         var store = event.target.result.createObjectStore('projects', {
-            keyPath: 'k'
+            keyPath: 'k',
         });
 
         store.transaction.oncomplete = function (e) {
@@ -52,10 +52,21 @@
         }
         db.transaction("projects", "readwrite").objectStore("projects").delete(key);
     }
-    
+
+    function clearDB() {
+        if (!db) {
+            setTimeout(function () {
+                clearDB()
+            }, 100);
+            return;
+        }
+        db.transaction("projects", "readwrite").objectStore("projects").clear()
+    }
+
     window['obj_db'] = {
         get: getValue,
         del: delKey,
+        clear: clearDB,
         set: function (key, value) {
             keyValue.k = key;
             keyValue.v = value;

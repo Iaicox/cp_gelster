@@ -1,7 +1,6 @@
 <?php
 header('Content-Type: text/html; charset=utf-8');
-include 'simple_html_dom.php
-?
+include 'simple_html_dom.php';
 $arrContextOptions = array(
 	"ssl" => array(
 		"verify_peer" => false,
@@ -946,76 +945,6 @@ $client = $_POST['client'];
 	</script>
 
 	<button onclick="PastePageBreak(); window.print(); getPageBreaks();" style="position:fixed; top:50px; right:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Сохранить в PDF</button>
-	<button onclick="saveProject();" style="position:fixed; top:50px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Сохранить изменения<br>в проекте</button>
-	<button onclick="obj_db.del(curProjectName);" style="position:fixed; top:110px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Удалить сохраненные<br>изменения</button>
-	<button onclick="addToChooseItems();" style="position:fixed; top:200px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Добавить артикулы</button>
-	<button onclick="chooseNone();addToChooseItems();" style="position:fixed; top:250px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Перевыбрать артикулы</button>
-</body>
-
-</html>on:fixed; top:50px; right:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Сохранить в PDF</button>
-	<button onclick="saveProject();" style="position:fixed; top:50px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Сохранить изменения<br>в проекте</button>
-	<button onclick="obj_db.del(curProjectName);" style="position:fixed; top:110px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Удалить сохраненные<br>изменения</button>
-	<button onclick="addToChooseItems();" style="position:fixed; top:200px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Добавить артикулы</button>
-	<button onclick="chooseNone();addToChooseItems();" style="position:fixed; top:250px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Перевыбрать артикулы</button>
-</body>
-
-</html>on:fixed; top:50px; right:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Сохранить в PDF</button>
-	<button onclick="saveProject();" style="position:fixed; top:50px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Сохранить изменения<br>в проекте</button>
-	<button onclick="obj_db.del(curProjectName);" style="position:fixed; top:110px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Удалить сохраненные<br>изменения</button>
-	<button onclick="addToChooseItems();" style="position:fixed; top:200px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Добавить артикулы</button>
-	<button onclick="chooseNone();addToChooseItems();" style="position:fixed; top:250px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Перевыбрать артикулы</button>
-</body>
-
-</html>on:fixed; top:50px; right:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Сохранить в PDF</button>
-	<button onclick="saveProject();" style="position:fixed; top:50px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Сохранить изменения<br>в проекте</button>
-	<button onclick="obj_db.del(curProjectName);" style="position:fixed; top:110px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Удалить сохраненные<br>изменения</button>
-	<button onclick="addToChooseItems();" style="position:fixed; top:200px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Добавить артикулы</button>
-	<button onclick="chooseNone();addToChooseItems();" style="position:fixed; top:250px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Перевыбрать артикулы</button>
-</body>
-
-</html>on:fixed; top:50px; right:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Сохранить в PDF</button>
-	<button onclick="saveProject();" style="position:fixed; top:50px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Сохранить изменения<br>в проекте</button>
-	<button onclick="obj_db.del(curProjectName);" style="position:fixed; top:110px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Удалить сохраненные<br>изменения</button>
-	<button onclick="addToChooseItems();" style="position:fixed; top:200px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Добавить артикулы</button>
-	<button onclick="chooseNone();addToChooseItems();" style="position:fixed; top:250px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Перевыбрать артикулы</button>
-</body>
-
-</html>on:fixed; top:50px; right:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Сохранить в PDF</button>
-	<button onclick="saveProject();" style="position:fixed; top:50px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Сохранить изменения<br>в проекте</button>
-	<button onclick="obj_db.del(curProjectName);" style="position:fixed; top:110px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Удалить сохраненные<br>изменения</button>
-	<button onclick="addToChooseItems();" style="position:fixed; top:200px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Добавить артикулы</button>
-	<button onclick="chooseNone();addToChooseItems();" style="position:fixed; top:250px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Перевыбрать артикулы</button>
-</body>
-
-</html>on:fixed; top:50px; right:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Сохранить в PDF</button>
-	<button onclick="saveProject();" style="position:fixed; top:50px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Сохранить изменения<br>в проекте</button>
-	<button onclick="obj_db.del(curProjectName);" style="position:fixed; top:110px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Удалить сохраненные<br>изменения</button>
-	<button onclick="addToChooseItems();" style="position:fixed; top:200px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Добавить артикулы</button>
-	<button onclick="chooseNone();addToChooseItems();" style="position:fixed; top:250px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Перевыбрать артикулы</button>
-</body>
-
-</html>on:fixed; top:50px; right:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Сохранить в PDF</button>
-	<button onclick="saveProject();" style="position:fixed; top:50px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Сохранить изменения<br>в проекте</button>
-	<button onclick="obj_db.del(curProjectName);" style="position:fixed; top:110px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Удалить сохраненные<br>изменения</button>
-	<button onclick="addToChooseItems();" style="position:fixed; top:200px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Добавить артикулы</button>
-	<button onclick="chooseNone();addToChooseItems();" style="position:fixed; top:250px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Перевыбрать артикулы</button>
-</body>
-
-</html>on:fixed; top:50px; right:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Сохранить в PDF</button>
-	<button onclick="saveProject();" style="position:fixed; top:50px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Сохранить изменения<br>в проекте</button>
-	<button onclick="obj_db.del(curProjectName);" style="position:fixed; top:110px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Удалить сохраненные<br>изменения</button>
-	<button onclick="addToChooseItems();" style="position:fixed; top:200px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Добавить артикулы</button>
-	<button onclick="chooseNone();addToChooseItems();" style="position:fixed; top:250px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Перевыбрать артикулы</button>
-</body>
-
-</html>on:fixed; top:50px; right:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Сохранить в PDF</button>
-	<button onclick="saveProject();" style="position:fixed; top:50px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Сохранить изменения<br>в проекте</button>
-	<button onclick="obj_db.del(curProjectName);" style="position:fixed; top:110px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Удалить сохраненные<br>изменения</button>
-	<button onclick="addToChooseItems();" style="position:fixed; top:200px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Добавить артикулы</button>
-	<button onclick="chooseNone();addToChooseItems();" style="position:fixed; top:250px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Перевыбрать артикулы</button>
-</body>
-
-</html>n:fixed; top:50px; right:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Сохранить в PDF</button>
 	<button onclick="saveProject();" style="position:fixed; top:50px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Сохранить изменения<br>в проекте</button>
 	<button onclick="obj_db.del(curProjectName);" style="position:fixed; top:110px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Удалить сохраненные<br>изменения</button>
 	<button onclick="addToChooseItems();" style="position:fixed; top:200px; left:100px; padding:10px; cursor:pointer; border-radius:15px; border:0; z-index: 100;">Добавить артикулы</button>
