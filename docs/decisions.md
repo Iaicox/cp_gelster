@@ -12,6 +12,33 @@ XML ЦБ тоже без CORS; добавление менеджера треб�
 (в) Оставить PHP: противоречит карточке.
 **Проверить фактом.** Архитектор не смог выполнить `curl` (в сессии разрешён только git). Первая карточка
 проверяет заголовки обоих сайтов и дописывает результат сюда. На решение это не влияет (см. spec, раздел 4).
+**Проверено 2026-11-11** (`curl -sI -H 'Origin: http://localhost' <url>`, плюс GET и preflight `OPTIONS` для двух адресов):
+ни один ответ не содержит `Access-Control-Allow-Origin` и других `Access-Control-*` заголовков, все отвечают 200.
+- `https://gelster.ru/marmoleum_cocoa.htm` — 200, `text/html;charset=utf-8`, CORS нет (preflight `OPTIONS` — 200 без CORS).
+- `https://gelster.ru/img/collections/marmoleum/m_cocoa/3584.jpg` — 200, `image/jpeg`, nginx, CORS нет.
+- `https://ooogelingen.ru/m_cocoa.htm` — 200, `text/html;charset=utf-8`, CORS нет.
+- `https://ooogelingen.ru/Forbo/Marmoleum/Cocoa/3580.jpg` — 200, `image/jpeg`, nginx, CORS нет.
+- `https://www.cbr.ru/scripts/XML_daily.asp` — 200, `application/xml; charset=windows-1251`, CORS нет (и в HEAD, и в GET).
+Вывод: браузер не может прочитать ни страницы, ни байты картинок, ни XML ЦБ напрямую — сервер-прокси нужен.
+
+## 2026-11-11. Каркас: зависимости и запуск без сборки сервера
+**Решение.** Сервер на TypeScript запускается самим Node (`node server/index.ts`, встроенное удаление типов,
+Node ≥ 22.18), без отдельной компиляции и без `tsx`. Поэтому в `tsconfig` включены `erasableSyntaxOnly` и
+`allowImportingTsExtensions`, импорты пишутся с расширением `.ts`. Клиент собирается Vite в `dist/`; сервер раздаёт
+`dist/`, если там есть `index.html`, остальные не-API пути отдают `index.html` (маршруты SPA).
+В разработке Vite (5173) проксирует `/api` на сервер (3000).
+**Зависимости каркаса.**
+- `react`, `react-dom`, `react-router` — клиент (спека, 4.1).
+- `hono`, `@hono/node-server` — сервер (спека, 4.1).
+- `vite`, `@vitejs/plugin-react` — сборка клиента и dev-сервер.
+- `typescript` 6.0 — проверка типов; 7.x не взят, потому что `typescript-eslint` пока поддерживает только < 6.1.
+- `vitest` — тесты (спека, 4.1).
+- `eslint`, `@eslint/js`, `typescript-eslint`, `eslint-plugin-react-hooks`, `globals` — `npm run lint`.
+- `concurrently` — `npm run dev` поднимает сервер и Vite одной командой и гасит оба по Ctrl+C на любой ОС.
+- `@types/node`, `@types/react`, `@types/react-dom` — типы.
+**Отвергли.** `tsx` в production (лишняя зависимость при наличии встроенного удаления типов); сборку сервера через
+`tsc` в отдельный каталог (лишний шаг и второй набор путей); фоновый запуск через `&` в `npm run dev`
+(не работает в Windows и оставляет процессы).
 
 ## 2026-11-11. Страницу разбирает сервер и отдаёт JSON
 **Решение.** `parseCollection(html, url)` на cheerio в `server/parsers`, отдельный адаптер на каждый сайт.

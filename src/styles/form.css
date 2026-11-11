@@ -1,0 +1,67 @@
+/* Form page styles, moved from legacy/style/style.css without changing sizes. */
+
+#KP {
+	position: relative;
+}
+
+.projects_list {
+	position: absolute;
+	max-height: 127px;
+	width: 50%;
+	top: -35px;
+	right: 0;
+}
+
+#projects {
+	overflow-y: auto;
+	height: 80px;
+}
+
+.projects_search {
+	position: absolute;
+	top: 8px;
+	right: 0;
+	width: 45%;
+}
+
+input {
+	border: 1px solid #adb5bd;
+}
+
+.list-counter {
+	width: 30px;
+}
+
+.list-name {
+	width: 350px;
+}
+
+.list-number {
+	width: 60px;
+}
+
+.list-price {
+	width: 150px;
+}
+
+.beginingForm {
+	width: 300px;
+}
+.projects_list-item {
+	display: block;
+	cursor: pointer;
+	margin-bottom: 0;
+}
+
+.projects_list-item hr {
+	margin: 0;
+}
+
+.deleteProject {
+	cursor: pointer;
+	font-size: large;
+}
+
+.deleteProject:hover {
+	font-weight: bold;
+}
