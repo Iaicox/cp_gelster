@@ -18,13 +18,21 @@ describe('migrated assets', () => {
     expect(css).not.toContain('fonts.gstatic.com');
   });
 
-  it('managers seed lists four managers with existing signature files', () => {
-    const managers = JSON.parse(readFileSync(at('data/managers/managers.json'), 'utf8')) as {
-      id: string;
-      name: string;
-      file: string;
-    }[];
+  it('managers seed lists four managers in the Manager format with existing signature files', () => {
+    const managers = JSON.parse(readFileSync(at('api/seed/managers.json'), 'utf8')) as Record<string, unknown>[];
     expect(managers.map((m) => m.id)).toEqual(['michael_smu', 'ivan_loginov', 'max_mal', 'barilovsky_ga']);
-    for (const m of managers) expect(existsSync(at(`data/managers/${m.file}`)), m.file).toBe(true);
+    for (const m of managers) {
+      expect(Object.keys(m).sort()).toEqual(['id', 'name', 'signature']);
+      expect(typeof m.name).toBe('string');
+      // URL relative to the app once the seed is copied into api/data/; the file itself ships in api/seed/.
+      const signature = String(m.signature);
+      expect(signature).toMatch(/^api\/data\/signatures\/[a-z0-9_]+\.jpg$/);
+      const file = signature.replace('api/data/', 'api/seed/');
+      expect(existsSync(at(file)), file).toBe(true);
+    }
+  });
+
+  it('public/config.json exists (read by the client at startup)', () => {
+    expect(existsSync(at('public/config.json'))).toBe(true);
   });
 });
