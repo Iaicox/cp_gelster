@@ -1,0 +1,278 @@
+/* KP preview: A4 sheets on the grey desk, the toolbar and warnings around them, and printing.
+   Sizes of the document itself live in document.css (moved from the legacy page, values unchanged). */
+
+.kp-screen {
+	--muted: #6c757d;
+	--line: #dee2e6;
+	--error: #b02a37;
+	--accent: #5d6b5a;
+	--ink: #212529;
+	padding-bottom: 32px;
+}
+
+/* ---- chrome: toolbar and warnings (never printed) ---- */
+
+.kp-toolbar {
+	position: sticky;
+	top: 0;
+	z-index: 20;
+	background: #f8f9fa;
+	border-bottom: 1px solid var(--line);
+}
+
+.kp-toolbar-inner {
+	width: 210mm;
+	max-width: 100%;
+	margin: 0 auto;
+	padding: 8px 0;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.kp-toolbar-spacer {
+	flex: 1;
+}
+
+.kp-toolbar button,
+.kp-toolbar a.kp-button {
+	border: 1px solid #adb5bd;
+	border-radius: 8px;
+	background: #fff;
+	color: var(--ink);
+	padding: 4px 12px;
+	cursor: pointer;
+	font: inherit;
+	text-decoration: none;
+	transition: background-color 0.15s;
+}
+
+.kp-toolbar button:hover:not(:disabled),
+.kp-toolbar a.kp-button:hover {
+	background: #e9ecef;
+}
+
+.kp-toolbar button:disabled {
+	cursor: default;
+	opacity: 0.6;
+}
+
+.kp-toolbar button.primary {
+	background: var(--accent);
+	border-color: var(--accent);
+	color: #fff;
+	padding: 4px 16px;
+}
+
+.kp-toolbar button.primary:hover:not(:disabled) {
+	background: #4a5648;
+}
+
+.kp-screen :focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 1px;
+}
+
+.kp-hint {
+	color: var(--muted);
+	font-size: 9.5pt;
+	white-space: nowrap;
+}
+
+.kp-notes {
+	width: 210mm;
+	max-width: 100%;
+	margin: 16px auto 0;
+	background: #fff;
+	border-left: 4px solid #c9a227;
+	padding: 12px 16px;
+}
+
+.kp-notes-title {
+	font-weight: bold;
+	margin-bottom: 4px;
+}
+
+.kp-notes ul {
+	padding-left: 20px;
+}
+
+.kp-notes li {
+	overflow-wrap: anywhere;
+}
+
+.kp-notes li.kp-error {
+	color: var(--error);
+}
+
+.kp-status,
+.kp-overflow,
+.kp-empty {
+	width: 210mm;
+	max-width: 100%;
+	margin: 0 auto;
+	font-family: "PT Sans";
+	font-size: 11pt;
+	text-align: left;
+}
+
+.kp-status::first-letter,
+.kp-overflow::first-letter,
+.kp-empty p::first-letter {
+	padding-left: 0 !important;
+}
+
+.kp-overflow {
+	background: #fff;
+	border-left: 4px solid var(--error);
+	color: var(--error);
+	padding: 8px 16px;
+	margin-bottom: 8px;
+}
+
+.kp-empty {
+	background: #fff;
+	margin-top: 16px;
+	padding: 24px;
+}
+
+.kp-empty p {
+	font-family: "PT Sans";
+	font-size: 11pt;
+	text-align: left;
+	margin-bottom: 12px;
+}
+
+/* ---- sheets ---- */
+
+.kp-pages {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	padding-top: 16px;
+}
+
+.kp-page {
+	position: relative;
+	width: 210mm;
+	height: 297mm;
+	margin: 0 auto;
+	background: #fff;
+	overflow: hidden;
+}
+
+.kp-page-header {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 52.5mm;
+	overflow: hidden;
+}
+
+.kp-page-header img,
+.kp-page-signature img {
+	display: block;
+	position: absolute;
+	left: 0;
+	width: 100%;
+}
+
+.kp-page-header img {
+	top: 0;
+}
+
+.kp-page-signature {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: var(--kp-footer, 17.5mm);
+	overflow: hidden;
+}
+
+.kp-page-signature img {
+	bottom: 0;
+}
+
+/* Paddings as .content of the legacy page; 15px above the signature as its page mark. */
+.kp-page-content {
+	position: absolute;
+	top: 52.5mm;
+	bottom: var(--kp-footer, 17.5mm);
+	left: 0;
+	right: 0;
+	padding: 20px 15mm 15px 18mm;
+	overflow: hidden;
+}
+
+/* flow-root: the height includes floats (main photo) and the margins of the first and last blocks. */
+.kp-page-flow {
+	display: flow-root;
+}
+
+.kp-gap {
+	margin-top: 19px;
+}
+
+/* The greeting continues the title block: one .intro in the legacy markup. */
+.kp-greeting {
+	margin-top: 0;
+}
+
+.kp-page .mainContent-img img {
+	display: block;
+	height: auto;
+}
+
+/* The page that is measured: laid out like a real one, never seen. */
+.kp-measure {
+	position: absolute;
+	top: 0;
+	left: -10000px;
+	width: 210mm;
+	visibility: hidden;
+	pointer-events: none;
+}
+
+/* ---- print: only the sheets, one per paper page ---- */
+
+@page {
+	size: A4;
+	margin: 0;
+}
+
+@media print {
+	html,
+	body {
+		background: #fff;
+	}
+
+	.no-print,
+	.kp-toolbar,
+	.kp-notes,
+	.kp-measure {
+		display: none !important;
+	}
+
+	.kp-screen {
+		padding: 0;
+	}
+
+	.kp-pages {
+		display: block;
+		padding: 0;
+	}
+
+	.kp-page {
+		margin: 0;
+		break-after: page;
+		break-inside: avoid;
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
+	}
+
+	.kp-sheet:last-child .kp-page {
+		break-after: auto;
+	}
+}
