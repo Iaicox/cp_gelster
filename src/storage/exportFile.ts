@@ -62,9 +62,13 @@ export function serializeExport(file: ExportFile): string {
   return JSON.stringify(file);
 }
 
-/** Saves the file through a temporary link (works over plain http, no File System Access API). */
 export function downloadExport(file: ExportFile, fileName: string): void {
-  const url = URL.createObjectURL(new Blob([serializeExport(file)], { type: 'application/json' }));
+  downloadBlob(new Blob([serializeExport(file)], { type: 'application/json' }), fileName);
+}
+
+/** Saves a file through a temporary link (works over plain http, no File System Access API). */
+export function downloadBlob(blob: Blob, fileName: string): void {
+  const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
   link.download = fileName;
