@@ -94,7 +94,9 @@ test('toolbar and warnings are hidden in print, the sheets stay', async ({ page 
   await page.emulateMedia({ media: 'print' });
   await expect(page.locator('.kp-toolbar')).toBeHidden();
   await expect(page.locator('.kp-notes')).toBeHidden();
-  await expect(page.locator('button')).toHaveCount(2);
+  // Toolbar buttons and the «×» / «вернуть авто» controls on the sheets.
+  expect(await page.locator('button').count()).toBeGreaterThan(4);
+  await expect(page.locator('.kp-pages .kp-control').first()).toBeAttached();
   for (const button of await page.locator('button').all()) await expect(button).toBeHidden();
   await expect(page.locator('.kp-page').first()).toBeVisible();
   // Sheets follow each other without the screen gaps; every sheet but the last ends the paper page.
@@ -189,11 +191,15 @@ test('«Обновить с сайта» asks first and re-reads the page; «К 
   expect(network.pageRequests).toHaveLength(1);
 
   page.once('dialog', (dialog) => {
-    expect(dialog.message()).toContain('Правки описания и характеристик пропадут');
+    expect(dialog.message()).toContain('Описание, характеристики и выбор артикулов будут сброшены');
     void dialog.accept();
   });
   await page.getByRole('button', { name: 'Обновить с сайта' }).click();
   await expect.poll(() => network.pageRequests.length).toBe(2);
+  // The choice of articles is reset: the picker offers them again.
+  const picker = page.getByRole('dialog', { name: 'Выберите артикулы' });
+  await expect(picker).toBeVisible();
+  await picker.getByRole('button', { name: 'Закрыть' }).click();
   await page.locator('.kp-pages[data-ready="true"]').waitFor();
 
   await page.getByRole('link', { name: 'К форме' }).click();

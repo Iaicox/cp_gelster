@@ -253,7 +253,7 @@
 	top: 0;
 	right: -26px;
 	z-index: 2;
-	visibility: hidden;
+	opacity: 0;
 	min-width: 22px;
 	height: 22px;
 	padding: 0 6px;
@@ -282,7 +282,7 @@
 
 .kp-edit-host:hover > .kp-control,
 .kp-edit-host:focus-within > .kp-control {
-	visibility: visible;
+	opacity: 1;
 }
 
 /* In a table the row's «×» stands in the left margin, outside the cells. */

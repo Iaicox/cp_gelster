@@ -143,11 +143,28 @@ export async function seed(
   );
 }
 
-/** Opens the KP of a project and waits until the pages are laid out. */
-export async function openKp(page: Page, id: string): Promise<number> {
+/**
+ * Opens the KP of a project and waits until the pages are laid out. When the article picker opens by itself
+ * (no article chosen yet), the first `pick` articles are ticked and confirmed; `pick: 0` leaves the picker open.
+ */
+export async function openKp(page: Page, id: string, { pick = 8 }: { pick?: number } = {}): Promise<number> {
   await page.goto(`./#/kp/${id}`);
   await page.locator('.kp-pages[data-ready="true"]').waitFor();
+  const dialog = page.getByRole('dialog', { name: 'Выберите артикулы' });
+  if (pick > 0 && (await dialog.isVisible())) await pickArticles(page, pick);
   return page.locator('.kp-pages .kp-page').count();
+}
+
+/** Ticks the first `count` articles in the open picker, confirms and waits for them on the pages. */
+export async function pickArticles(page: Page, count: number): Promise<void> {
+  const dialog = page.getByRole('dialog');
+  const boxes = dialog.getByRole('checkbox');
+  const total = Math.min(count, await boxes.count());
+  for (let i = 0; i < total; i++) await boxes.nth(i).check();
+  await dialog.getByRole('button', { name: 'Подтвердить' }).click();
+  await dialog.waitFor({ state: 'hidden' });
+  // The pages are swapped in one step once the new layout is measured.
+  await page.locator('.kp-pages .table-items th').nth(total - 1).waitFor();
 }
 
 export type PdfInfo = { pages: { width: number; height: number; text: string }[]; text: string };
