@@ -1,12 +1,13 @@
 /** Tables of the KP. Markup and class names repeat legacy/result.php so that document.css applies unchanged. */
 import type { KpAssets } from '../assets.ts';
 import type { KpBlock } from '../model.ts';
-import { Html } from './Html.tsx';
+import { clean, Control, Editable, escapeHtml, readHtml, readText, useKpEditor } from './Editable.tsx';
 import type { Segment } from './segments.ts';
 
 type Of<K extends Segment['kind']> = Extract<Segment, { kind: K }>;
 
 export function ArticlesTable({ segment, assets }: { segment: Of<'articles'>; assets: KpAssets }) {
+  const editor = useKpEditor();
   return (
     <div className="clear table_items-wrapper">
       <table className="table-items">
@@ -25,7 +26,16 @@ export function ArticlesTable({ segment, assets }: { segment: Of<'articles'>; as
             <tr key={`${row.id}-text`}>
               {row.articles.map((article, index) => (
                 <th key={index}>
-                  <span>{article.caption}</span>
+                  <Editable
+                    tag="span"
+                    html={escapeHtml(article.caption)}
+                    label={`Подпись артикула ${article.code}`}
+                    commit={
+                      editor
+                        ? (element) => editor.apply({ kind: 'caption', index: row.first + index, text: readText(element) })
+                        : undefined
+                    }
+                  />
                 </th>
               ))}
             </tr>,
@@ -37,13 +47,19 @@ export function ArticlesTable({ segment, assets }: { segment: Of<'articles'>; as
 }
 
 export function FeaturesTable({ segment }: { segment: Of<'features'> }) {
+  const editor = useKpEditor();
   return (
     <table className="table-features">
       {segment.head ? (
         <thead>
           <tr>
             <th colSpan={segment.head.columns}>
-              <span>{segment.head.title}</span>
+              <Editable
+                tag="span"
+                html={escapeHtml(segment.head.title)}
+                label="Заголовок характеристик"
+                commit={editor ? (element) => editor.apply({ kind: 'featuresTitle', text: readText(element) }) : undefined}
+              />
             </th>
           </tr>
         </thead>
@@ -51,9 +67,30 @@ export function FeaturesTable({ segment }: { segment: Of<'features'> }) {
       <tbody>
         {segment.rows.map((row) => (
           <tr key={row.id}>
-            {row.cells.map((cell, index) => (
-              <Html key={index} tag={cell.header ? 'th' : 'td'} html={cell.html} colSpan={cell.colSpan} rowSpan={cell.rowSpan} />
-            ))}
+            {row.cells.map((cell, index) => {
+              const Cell = cell.header ? 'th' : 'td';
+              return (
+                // The cell holds the text box and, in the first cell, the «×» of the row.
+                <Cell key={index} className="kp-edit-host" colSpan={cell.colSpan} rowSpan={cell.rowSpan}>
+                  <Editable
+                    tag="div"
+                    html={clean(cell.html)}
+                    label="Ячейка характеристик"
+                    commit={
+                      editor
+                        ? (element) =>
+                            editor.apply({ kind: 'featureCell', row: row.row, cell: index, html: readHtml(element) })
+                        : undefined
+                    }
+                  />
+                  {editor && index === 0 ? (
+                    <Control label="Удалить строку" onClick={() => editor.apply({ kind: 'deleteFeatureRow', row: row.row })}>
+                      ×
+                    </Control>
+                  ) : null}
+                </Cell>
+              );
+            })}
           </tr>
         ))}
       </tbody>

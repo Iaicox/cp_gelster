@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Item, Project } from '../../../shared/schema.ts';
-import { buildKpDocument, type KpBlock } from '../model.ts';
+import { buildKpDocument, createInitialKp, type KpBlock } from '../model.ts';
 import type { Placed } from '../paginate.ts';
 import { toSegments } from './segments.ts';
 
@@ -44,7 +44,14 @@ const project: Project = {
   kp: null,
 };
 
-const blocks = buildKpDocument(project, null).blocks;
+const picked: Project = {
+  ...project,
+  kp: {
+    ...createInitialKp(project.collection),
+    selectedArticles: (project.collection?.articles ?? []).map(({ code, image }) => ({ code, image, caption: code })),
+  },
+};
+const blocks = buildKpDocument(picked, null).blocks;
 const placed = (list: KpBlock[]): Placed<KpBlock>[] => list.map((block) => ({ block, repeated: false }));
 const shape = (list: Placed<KpBlock>[]) =>
   toSegments(list).map((s) => `${s.kind === 'single' ? s.block.type : s.kind}${s.gapBefore ? '+gap' : ''}`);

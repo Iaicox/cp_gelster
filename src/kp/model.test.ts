@@ -65,6 +65,16 @@ function project(patch: Partial<Project['form']> = {}, rest: Partial<Project> = 
   };
 }
 
+/** The project after the manager has picked the first `count` articles of its collection. */
+function picked(p: Project, count = 8): Project {
+  const selectedArticles = (p.collection?.articles ?? []).slice(0, count).map((article) => ({
+    code: article.code,
+    image: article.image,
+    caption: `Арт. ${article.code}`,
+  }));
+  return { ...p, kp: { ...(p.kp ?? createInitialKp(p.collection)), selectedArticles } };
+}
+
 function build(p: Project, manager: Manager | null = MANAGER) {
   return buildKpDocument(p, manager, { now: NOW });
 }
@@ -127,7 +137,7 @@ describe('buildKpDocument: fields derived from the form', () => {
 
 describe('buildKpDocument: content from the collection', () => {
   it('keeps the document order', () => {
-    const types = build(project()).blocks.map((block) => block.type);
+    const types = build(picked(project())).blocks.map((block) => block.type);
     expect([...new Set(types)]).toEqual([
       'date', 'title', 'greeting', 'intro', 'collectionHeading', 'mainImage', 'paragraph', 'articleRow',
       'paletteLink', 'featuresHead', 'featureRow', 'calcNote', 'priceHead', 'priceRow', 'priceFoot', 'total',
@@ -160,14 +170,17 @@ describe('buildKpDocument: content from the collection', () => {
     expect(splitDescription('  ')).toEqual([]);
   });
 
-  it('takes the first 8 articles in rows of 4 until they are picked', () => {
-    const rows = all(build(project()).blocks, 'articleRow');
+  it('has no articles until they are picked, then puts them in rows of 4', () => {
+    expect(all(build(project()).blocks, 'articleRow')).toEqual([]);
+    expect(createInitialKp(collection()).selectedArticles).toEqual([]);
+    const rows = all(build(picked(project())).blocks, 'articleRow');
     expect(rows.map((row) => row.articles.map((article) => article.code))).toEqual([
       ['350', '351', '352', '353'],
       ['354', '355', '356', '357'],
     ]);
     expect(rows[1]?.keepWithNext).toBe(true); // the palette link stays under the last row
     expect(rows[0]?.articles[0]?.caption).toBe('Арт. 350');
+    expect(rows.map((row) => row.first)).toEqual([0, 4]);
     expect(one(build(project()).blocks, 'paletteLink').url).toBe('https://ooogelingen.ru/m_cocoa.htm');
   });
 
@@ -217,7 +230,7 @@ describe('buildKpDocument: content from the collection', () => {
   it('builds from the Marmoleum Cocoa fixture', () => {
     const html = readFileSync('shared/parsers/__fixtures__/ooogelingen.ru/m_cocoa.htm', 'utf8');
     const parsed = parseCollection(html, 'https://ooogelingen.ru/m_cocoa.htm');
-    const { blocks } = build(project({}, { collection: parsed }));
+    const { blocks } = build(picked(project({}, { collection: parsed }), parsed.articles.length));
     expect(one(blocks, 'title').text).toBe('Коммерческое предложение на поставку натурального линолеума с какао Forbo');
     expect(all(blocks, 'paragraph').length).toBeGreaterThan(0);
     expect(all(blocks, 'articleRow').length).toBeGreaterThan(0);
