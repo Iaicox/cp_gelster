@@ -246,3 +246,24 @@ describe('fetchSignature', () => {
     expect(fetchFn).not.toHaveBeenCalled();
   });
 });
+
+describe('fetchAppFile', () => {
+  it('reads files of the app and object URLs of the page, in any mode', async () => {
+    for (const config of [PROXY, DIRECT, SERVERLESS]) {
+      const { client, fetchFn } = setup(config, () => new Response(new Uint8Array([7, 8, 9])));
+      expect(Array.from(await client.fetchAppFile('fonts/PT_Serif-Web-Regular.ttf'))).toEqual([7, 8, 9]);
+      await client.fetchAppFile('blob:http://127.0.0.1/1234');
+      expect(fetchFn.mock.calls.map((call) => call[0])).toEqual(['fonts/PT_Serif-Web-Regular.ttf', 'blob:http://127.0.0.1/1234']);
+    }
+  });
+
+  it('refuses other addresses without a request and reports a missing file', async () => {
+    const { client, fetchFn } = setup(PROXY, () => new Response(''));
+    for (const url of ['https://evil.example/a.ttf', '//evil.example/a.ttf', 'data:font/ttf;base64,AA==', '\\\\host\\a']) {
+      expect((await rejection(client.fetchAppFile(url))).status).toBe(400);
+    }
+    expect(fetchFn).not.toHaveBeenCalled();
+    const missing = setup(PROXY, () => new Response('', { status: 404 }));
+    expect((await rejection(missing.client.fetchAppFile('header.jpg'))).status).toBe(404);
+  });
+});

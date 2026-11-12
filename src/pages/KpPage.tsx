@@ -14,6 +14,7 @@ import { KpEditorContext, type KpEditor } from '../kp/blocks/Editable.tsx';
 import { applyChange } from '../kp/edit.ts';
 import { buildKpDocument, createInitialKp } from '../kp/model.ts';
 import { PagedDocument } from '../kp/PagedDocument.tsx';
+import { downloadBlob } from '../storage/exportFile.ts';
 import { getProject, saveProject } from '../storage/projects.ts';
 import '../styles/kp.css';
 
@@ -64,6 +65,7 @@ function KpScreen({ id }: { id: string }) {
   const [loaded, setLoaded] = useState<Loaded | 'loading' | 'missing'>('loading');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [docxBusy, setDocxBusy] = useState(false);
   const [assets, setAssets] = useState<{ assets: KpAssets; warnings: string[] } | null>(null);
   const [pageCount, setPageCount] = useState(0);
   const [picker, setPicker] = useState<PickerMode | null>(null);
@@ -210,6 +212,21 @@ function KpScreen({ id }: { id: string }) {
     }
   }
 
+  /** DOCX of the document as it is now; the library is loaded on the first click. */
+  async function saveDocx() {
+    if (!doc || !assets) return;
+    setDocxBusy(true);
+    setError(null);
+    try {
+      const { buildDocx, loadDocxAssets } = await import('../export/docx.ts');
+      downloadBlob(await buildDocx(doc, await loadDocxAssets(assets.assets)), `${doc.fileName}.docx`);
+    } catch (cause) {
+      setError(`DOCX не сохранился: ${messageOf(cause)}`);
+    } finally {
+      setDocxBusy(false);
+    }
+  }
+
   if (loaded === 'loading' || loaded === 'missing' || !doc) {
     return (
       <div className="kp-screen">
@@ -262,6 +279,9 @@ function KpScreen({ id }: { id: string }) {
             onClick={() => printKp(doc.fileName)}
           >
             Сохранить в PDF
+          </button>
+          <button type="button" disabled={pageCount === 0 || docxBusy} onClick={() => void saveDocx()}>
+            {docxBusy ? 'Готовим DOCX…' : 'Сохранить в DOCX'}
           </button>
         </div>
       </div>

@@ -155,6 +155,17 @@ export function createApiClient(deps: ApiDeps = {}) {
     return parsed.data;
   }
 
+  /**
+   * Bytes of a file shipped with the app (a relative path such as `header.jpg` or `fonts/…ttf`) or of an object
+   * URL the page has created (`blob:`). Anything else is refused: other addresses go through the methods above.
+   */
+  async function fetchAppFile(path: string): Promise<Uint8Array> {
+    const relative = !/^[a-z][a-z0-9+.-]*:/i.test(path) && !path.startsWith('//') && !path.startsWith('\\');
+    if (!relative && !path.startsWith('blob:')) throw new ApiError(`Не файл приложения: ${path}`, 400);
+    const response = await request(path, undefined, `Файл не загрузился: ${path}`);
+    return new Uint8Array(await response.arrayBuffer());
+  }
+
   async function post(fields: Record<string, string | Blob>): Promise<Response> {
     if (!canManageManagers()) throw new ApiError('Управление менеджерами недоступно: приложение работает без сервера');
     const body = new FormData();
@@ -182,6 +193,7 @@ export function createApiClient(deps: ApiDeps = {}) {
     fetchCollection,
     fetchImage,
     fetchSignature,
+    fetchAppFile,
     canFetchRates,
     fetchRates,
     canManageManagers,
@@ -200,6 +212,7 @@ export const {
   fetchCollection,
   fetchImage,
   fetchSignature,
+  fetchAppFile,
   canFetchRates,
   fetchRates,
   canManageManagers,
