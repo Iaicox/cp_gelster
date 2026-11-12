@@ -167,6 +167,7 @@ describe('buildKpDocument: content from the collection', () => {
       ['354', '355', '356', '357'],
     ]);
     expect(rows[1]?.keepWithNext).toBe(true); // the palette link stays under the last row
+    expect(rows[0]?.articles[0]?.caption).toBe('Арт. 350');
     expect(one(build(project()).blocks, 'paletteLink').url).toBe('https://ooogelingen.ru/m_cocoa.htm');
   });
 
@@ -187,6 +188,7 @@ describe('buildKpDocument: content from the collection', () => {
     const { blocks } = build(project({}, { collection: collection({ features }) }));
     expect(one(blocks, 'featuresHead')).toMatchObject({
       title: 'Технические характеристики Marmoleum Cocoa:',
+      columns: 2,
       keepWithNext: true,
       repeatOnBreak: true,
       group: 'features',
@@ -288,7 +290,12 @@ describe('buildKpDocument: manager', () => {
   it('removed manager: stored signature by id and a warning', () => {
     const doc = build(project(), null);
     expect(doc.signature).toEqual({ managerId: 'm1', url: null });
-    expect(doc.warnings).toEqual(['Менеджер «Иван Логинов» удалён из списка: используется сохранённая подпись.']);
+    expect(doc.warnings).toEqual(['Менеджер «Иван Логинов» удалён из списка.']);
+  });
+
+  it('managers list unavailable: no false «removed» warning', () => {
+    const doc = buildKpDocument(project(), null, { now: NOW, managersUnavailable: true });
+    expect(doc.warnings).toEqual(['Список менеджеров не загрузился.']);
   });
 
   it('no manager chosen: common footer and a hint', () => {

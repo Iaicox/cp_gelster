@@ -36,7 +36,7 @@ export type KpBlock = BlockBase &
     | { type: 'paragraph'; html: string; list: ParagraphList; /** 1-based, for numbered items. */ number?: number }
     | { type: 'articleRow'; articles: { code: string; image: string; caption: string }[] }
     | { type: 'paletteLink'; url: string }
-    | { type: 'featuresHead'; title: string }
+    | { type: 'featuresHead'; title: string; /** Width of the table in columns (the head spans them all). */ columns: number }
     | { type: 'featureRow'; cells: FeatureCell[] }
     | { type: 'calcNote'; text: string }
     | { type: 'priceHead'; table: PriceTableId; title: string; showEuro: boolean }
@@ -135,7 +135,7 @@ export function createInitialKp(collection: Collection | null): KpEdits {
     selectedArticles: (collection?.articles ?? []).slice(0, DEFAULT_ARTICLES).map((article) => ({
       code: article.code,
       image: article.image,
-      caption: [article.code, article.title ?? ''].filter((part) => part.trim() !== '').join(' '),
+      caption: `Арт. ${article.code}`,
     })),
     featuresTitle: `Технические характеристики${name === '' ? '' : ` ${name}`}:`,
     features: collection?.features ?? [],
@@ -246,8 +246,9 @@ function featureBlocks(title: string, rows: KpEdits['features']): KpBlock[] {
   const filled = rows.filter((row) => row.cells.length > 0);
   if (filled.length === 0) return [];
   const group = 'features';
+  const columns = Math.max(...filled.map((row) => row.cells.reduce((sum, cell) => sum + (cell.colSpan ?? 1), 0)));
   const blocks: KpBlock[] = [
-    { id: 'features-head', type: 'featuresHead', title, group, keepWithNext: true, repeatOnBreak: true },
+    { id: 'features-head', type: 'featuresHead', title, columns, group, keepWithNext: true, repeatOnBreak: true },
   ];
   // Rows joined by a rowSpan cell cannot be torn apart: a row keeps with the next one while a span is open.
   let openSpan = 0;
@@ -269,6 +270,8 @@ function featureBlocks(title: string, rows: KpEdits['features']): KpBlock[] {
 export type BuildOptions = {
   /** "Today" for the automatic date and the file name; injected in tests. */
   now?: Date;
+  /** The managers list could not be loaded: a missing manager is then not reported as removed. */
+  managersUnavailable?: boolean;
 };
 
 /**
@@ -347,7 +350,10 @@ export function buildKpDocument(project: Project, manager: Manager | null, optio
 
   if (!collection) warnings.push('Страница коллекции не загружена: описание, артикулы и характеристики пустые.');
   if (form.managerId === '') warnings.push('Выберите менеджера в форме: на страницах стоит общая подпись.');
-  else if (!manager) warnings.push(`Менеджер${form.managerName ? ` «${form.managerName}»` : ''} удалён из списка: используется сохранённая подпись.`);
+  else if (options.managersUnavailable) warnings.push('Список менеджеров не загрузился.');
+  else if (!manager) {
+    warnings.push(`Менеджер${form.managerName ? ` «${form.managerName}»` : ''} удалён из списка.`);
+  }
 
   return {
     fileName: buildFileName(form.client, now),
