@@ -4,20 +4,6 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../api/lib/bootstrap.php';
 
-function with_temp_dir(callable $fn): void
-{
-    $dir = sys_get_temp_dir() . '/gelster-test-' . bin2hex(random_bytes(6));
-    mkdir($dir);
-    try {
-        $fn($dir);
-    } finally {
-        foreach (glob($dir . '/*') ?: [] as $file) {
-            unlink($file);
-        }
-        rmdir($dir);
-    }
-}
-
 test('php_version_ok accepts 8.4 and 8.5, rejects 8.3', function (): void {
     assert_true(php_version_ok(80400));
     assert_true(php_version_ok(80512));
