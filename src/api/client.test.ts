@@ -229,3 +229,20 @@ describe('serverless mode (apiBase: null)', () => {
     expect((await rejection(client.listManagers())).status).toBe(404);
   });
 });
+
+describe('fetchSignature', () => {
+  it('loads the app-relative signature file as is, in any mode', async () => {
+    const { client, fetchFn } = setup(PROXY, () => new Response(new Uint8Array([1, 2]), { headers: { 'Content-Type': 'image/jpeg' } }));
+    const blob = await client.fetchSignature('api/data/signatures/a.jpg');
+    expect(fetchFn.mock.calls[0]?.[0]).toBe('api/data/signatures/a.jpg');
+    expect(blob.size).toBe(2);
+  });
+
+  it('refuses absolute addresses without a request', async () => {
+    const { client, fetchFn } = setup(PROXY, () => new Response(''));
+    for (const url of ['https://evil.example/a.jpg', '//evil.example/a.jpg', 'javascript:alert(1)']) {
+      expect((await rejection(client.fetchSignature(url))).status).toBe(400);
+    }
+    expect(fetchFn).not.toHaveBeenCalled();
+  });
+});
