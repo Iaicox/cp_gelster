@@ -65,3 +65,241 @@ input {
 .deleteProject:hover {
 	font-weight: bold;
 }
+
+/* ---- React form page (FormPage, ManagersPage). Quiet greys of the legacy form, one accent for actions. ---- */
+
+.form-page,
+.managers-page {
+	--muted: #6c757d;
+	--line: #dee2e6;
+	--error: #b02a37;
+	--accent: #5d6b5a;
+	padding-bottom: 24px;
+}
+
+.form-top {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 16px;
+}
+
+.form-top .intro {
+	text-align: left;
+	width: auto;
+}
+
+.managers-link {
+	color: var(--muted);
+}
+
+.form-page fieldset,
+.managers-page fieldset {
+	border: 0;
+	margin: 16px 0 0;
+}
+
+.form-page legend,
+.managers-page h2 {
+	font-size: 13pt;
+	margin-bottom: 8px;
+}
+
+.form-page button,
+.managers-page button {
+	border: 1px solid #adb5bd;
+	border-radius: 8px;
+	background: #f8f9fa;
+	padding: 4px 12px;
+	cursor: pointer;
+	font: inherit;
+	transition: background-color 0.15s;
+}
+
+.form-page button:hover:not(:disabled),
+.managers-page button:hover:not(:disabled) {
+	background: #e9ecef;
+}
+
+.form-page button:disabled,
+.managers-page button:disabled {
+	cursor: default;
+	opacity: 0.6;
+}
+
+.form-page button.primary {
+	background: var(--accent);
+	border-color: var(--accent);
+	color: #fff;
+	padding: 8px 20px;
+}
+
+.form-page button.primary:hover {
+	background: #4a5648;
+}
+
+.form-page :focus-visible,
+.managers-page :focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 1px;
+}
+
+.form-page input[type='text'],
+.form-page input[type='url'],
+.form-page input[type='search'],
+.form-page select,
+.managers-page input[type='text'],
+.managers-page input[type='password'] {
+	padding: 2px 4px;
+	font: inherit;
+}
+
+.projects {
+	border: 1px solid var(--line) !important;
+	border-radius: 8px;
+	padding: 8px 12px 12px;
+}
+
+.projects legend {
+	padding: 0 4px;
+}
+
+.projects-search {
+	width: 100%;
+	margin-bottom: 8px;
+}
+
+.projects-list {
+	list-style: none;
+	max-height: 128px;
+	overflow-y: auto;
+}
+
+.projects-list li {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	border-bottom: 1px solid var(--line);
+	padding: 2px 0;
+}
+
+.projects-list label {
+	cursor: pointer;
+	flex: 1;
+}
+
+.form-page .deleteProject {
+	border: 0;
+	background: none;
+	color: var(--muted);
+	padding: 0 8px;
+}
+
+.projects-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 8px;
+}
+
+.kp-form .field {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 8px;
+}
+
+.kp-form .field > span:first-child,
+.kp-form .field > label:first-child {
+	width: 180px;
+	flex-shrink: 0;
+}
+
+.kp-form .choice label {
+	display: block;
+}
+
+.item-row {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	margin-bottom: 4px;
+}
+
+.item-row .list-counter {
+	text-align: right;
+	padding-right: 4px;
+	font-variant-numeric: tabular-nums;
+}
+
+.form-page .row-button {
+	width: 28px;
+	padding: 0;
+	line-height: 24px;
+}
+
+.comment-text {
+	width: 400px;
+}
+
+.form-page .invalid,
+.managers-page .invalid {
+	border-color: var(--error);
+	background: #fff5f5;
+}
+
+.hint {
+	color: var(--muted);
+	margin: 4px 0 0 188px;
+	font-size: 10pt;
+}
+
+.notice {
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	padding: 8px 12px;
+	margin-top: 12px;
+}
+
+.hint.error,
+.notice.error {
+	color: var(--error);
+}
+
+.import-conflicts {
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	padding: 12px;
+	margin-top: 12px;
+}
+
+.import-conflicts label {
+	margin-right: 16px;
+}
+
+.managers-list {
+	list-style: none;
+	margin-top: 12px;
+}
+
+.managers-list li {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	padding: 4px 0;
+	border-bottom: 1px solid var(--line);
+}
+
+.managers-list li > span {
+	flex: 1;
+}
+
+.signature-preview {
+	max-height: 48px;
+	max-width: 200px;
+}
+
+.login-form,
+.add-manager {
+	margin-top: 16px;
+}
