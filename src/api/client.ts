@@ -112,6 +112,13 @@ export function createApiClient(deps: ApiDeps = {}) {
     return response.blob();
   }
 
+  /** A manager's signature: a file of this app (relative URL from Manager.signature), not a site image. */
+  async function fetchSignature(url: string): Promise<Blob> {
+    if (/^[a-z][a-z0-9+.-]*:|^\/\//i.test(url)) throw new ApiError('Адрес подписи должен быть относительным', 400);
+    const response = await request(url, undefined, 'Не удалось загрузить подпись менеджера');
+    return response.blob();
+  }
+
   /** Whether the «ЦБ» button makes sense: cbr.ru has no CORS, so rates need the PHP API. */
   function canFetchRates(): boolean {
     return config().apiBase !== null;
@@ -174,6 +181,7 @@ export function createApiClient(deps: ApiDeps = {}) {
   return {
     fetchCollection,
     fetchImage,
+    fetchSignature,
     canFetchRates,
     fetchRates,
     canManageManagers,
@@ -191,6 +199,7 @@ export const api: ApiClient = createApiClient();
 export const {
   fetchCollection,
   fetchImage,
+  fetchSignature,
   canFetchRates,
   fetchRates,
   canManageManagers,
