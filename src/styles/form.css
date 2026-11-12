@@ -97,6 +97,7 @@ input {
 .managers-page fieldset {
 	border: 0;
 	margin: 16px 0 0;
+	min-width: 0;
 }
 
 .form-page legend,
@@ -301,5 +302,27 @@ input {
 
 .login-form,
 .add-manager {
+	margin-top: 16px;
+}
+
+/* document.css styles every <p> as KP body text (serif, indented first letter): not on the form pages. */
+.form-page p,
+.managers-page p {
+	font-family: inherit;
+	font-size: inherit;
+	text-align: left;
+}
+
+.form-page p::first-letter,
+.managers-page p::first-letter {
+	padding-left: 0 !important;
+}
+
+.item-row .list-name {
+	flex: 1;
+	min-width: 0;
+}
+
+.kp-form > p:last-child {
 	margin-top: 16px;
 }
