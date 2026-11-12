@@ -1,14 +1,17 @@
 /**
  * KP preview (docs/spec.md, section 8): loads the project, fetches the collection page when there is no
  * snapshot (or the link in the form has changed and the manager agrees), shows warnings and the A4 pages,
- * prints to PDF. Choosing articles and editing text belong to the next card.
+ * prints to PDF. Articles are chosen in the picker; texts are edited in place and saved into project.kp.
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import type { Collection, Manager, Project } from '../../shared/schema.ts';
 import { fetchCollection, listManagers } from '../api/client.ts';
 import { printKp } from '../export/print.ts';
+import { ArticlePicker, type PickerMode } from '../kp/ArticlePicker.tsx';
 import { imageUrlsOf, loadKpAssets, type KpAssets } from '../kp/assets.ts';
+import { KpEditorContext, type KpEditor } from '../kp/blocks/Editable.tsx';
+import { applyChange } from '../kp/edit.ts';
 import { buildKpDocument, createInitialKp } from '../kp/model.ts';
 import { PagedDocument } from '../kp/PagedDocument.tsx';
 import { getProject, saveProject } from '../storage/projects.ts';
@@ -21,12 +24,11 @@ function messageOf(error: unknown): string {
 }
 
 /**
- * Puts a freshly parsed collection into the project.
- * - 'replace' (first load or another link): description, features and the choice of articles start anew;
- * - 'refresh' («Обновить с сайта»): description and features are re-read, chosen articles stay.
- * Fields derived from the form (date, title, greeting…) and comments are kept in both cases.
+ * Puts a freshly parsed collection into the project (first load, another link, «Обновить с сайта»): the
+ * description, the features and the choice of articles (with their captions) start anew. The edited date,
+ * title, greeting, intro, collection heading and the comments are kept.
  */
-export function withCollection(project: Project, collection: Collection, mode: 'replace' | 'refresh'): Project {
+export function withCollection(project: Project, collection: Collection): Project {
   const fresh = createInitialKp(collection);
   const old = project.kp;
   const kp = old
@@ -35,10 +37,15 @@ export function withCollection(project: Project, collection: Collection, mode: '
         descriptionHtml: fresh.descriptionHtml,
         featuresTitle: fresh.featuresTitle,
         features: fresh.features,
-        selectedArticles: mode === 'replace' ? fresh.selectedArticles : old.selectedArticles,
+        selectedArticles: fresh.selectedArticles,
       }
     : fresh;
   return { ...project, collection, kp, updatedAt: new Date().toISOString() };
+}
+
+/** No article chosen yet while the collection has some: the picker opens by itself. */
+function wantsPicker(project: Project): boolean {
+  return (project.collection?.articles.length ?? 0) > 0 && (project.kp?.selectedArticles.length ?? 0) === 0;
 }
 
 type Loaded = {
@@ -59,14 +66,38 @@ function KpScreen({ id }: { id: string }) {
   const [busy, setBusy] = useState(false);
   const [assets, setAssets] = useState<{ assets: KpAssets; warnings: string[] } | null>(null);
   const [pageCount, setPageCount] = useState(0);
+  const [picker, setPicker] = useState<PickerMode | null>(null);
+  /** The latest project: edits arrive from event handlers and must not work on a stale copy. */
+  const projectRef = useRef<Project | null>(null);
+
+  /** Shows and saves the next state of the project. */
+  const update = useCallback((next: Project) => {
+    projectRef.current = next;
+    setLoaded((old) => (typeof old === 'string' ? old : { ...old, project: next }));
+    saveProject(next).catch((cause: unknown) => setError(`Правка не сохранилась: ${messageOf(cause)}`));
+  }, []);
+
+  const editor = useMemo<KpEditor>(
+    () => ({
+      apply(change) {
+        const project = projectRef.current;
+        if (!project) return false;
+        const next = applyChange(project, change);
+        if (next === project) return false;
+        update({ ...next, updatedAt: new Date().toISOString() });
+        return true;
+      },
+    }),
+    [update],
+  );
 
   /** Downloads and parses the page of `project.form.link`, saves the project. Throws ApiError. */
-  async function reload(project: Project, mode: 'replace' | 'refresh'): Promise<Project> {
+  async function reload(project: Project): Promise<Project> {
     const link = project.form.link.trim();
     // The snapshot remembers the link it was requested by, not the address after redirects: the form link is
     // compared with it to notice that the manager has put in another collection.
     const collection = { ...(await fetchCollection(link)), sourceUrl: link };
-    const next = withCollection(project, collection, mode);
+    const next = withCollection(project, collection);
     await saveProject(next);
     return next;
   }
@@ -102,7 +133,7 @@ function KpScreen({ id }: { id: string }) {
       try {
         if (wanted) {
           setBusy(true);
-          project = await reload(project, 'replace');
+          project = await reload(project);
         } else if (project.kp === null && snapshot !== null) {
           // First opening of the preview with a ready snapshot (an imported project, for example).
           project = { ...project, kp: createInitialKp(snapshot), updatedAt: new Date().toISOString() };
@@ -113,7 +144,9 @@ function KpScreen({ id }: { id: string }) {
       }
       if (cancelled) return;
       setBusy(false);
+      projectRef.current = project;
       setLoaded({ project, managers });
+      if (wantsPicker(project)) setPicker('reselect');
     })();
     return () => {
       cancelled = true;
@@ -159,12 +192,17 @@ function KpScreen({ id }: { id: string }) {
 
   async function refresh() {
     if (typeof loaded === 'string') return;
-    if (!window.confirm('Перечитать страницу коллекции с сайта?\nПравки описания и характеристик пропадут.')) return;
+    const question =
+      'Перечитать страницу коллекции с сайта?\n' +
+      'Описание, характеристики и выбор артикулов будут сброшены, остальные правки сохранятся.';
+    if (!window.confirm(question)) return;
     setBusy(true);
     setError(null);
     try {
-      const project = await reload(loaded.project, 'refresh');
+      const project = await reload(projectRef.current ?? loaded.project);
+      projectRef.current = project;
       setLoaded({ ...loaded, project });
+      if (wantsPicker(project)) setPicker('reselect');
     } catch (cause) {
       setError(`Страница коллекции не загрузилась: ${messageOf(cause)}`);
     } finally {
@@ -185,6 +223,16 @@ function KpScreen({ id }: { id: string }) {
 
   const warnings = [...doc.warnings, ...(assets?.warnings ?? [])];
   const canRefresh = loaded.project.form.link.trim() !== '';
+  const articles = loaded.project.collection?.articles ?? [];
+  const selected = loaded.project.kp?.selectedArticles ?? [];
+
+  function confirmArticles(chosen: typeof selected) {
+    setPicker(null);
+    const project = projectRef.current;
+    if (!project) return;
+    const kp = project.kp ?? createInitialKp(project.collection);
+    update({ ...project, kp: { ...kp, selectedArticles: chosen }, updatedAt: new Date().toISOString() });
+  }
 
   return (
     <div className="kp-screen">
@@ -195,6 +243,12 @@ function KpScreen({ id }: { id: string }) {
           </Link>
           <button type="button" onClick={() => void refresh()} disabled={busy || !canRefresh}>
             {busy ? 'Загружаем…' : 'Обновить с сайта'}
+          </button>
+          <button type="button" onClick={() => setPicker('add')} disabled={busy || articles.length === 0}>
+            Добавить артикулы
+          </button>
+          <button type="button" onClick={() => setPicker('reselect')} disabled={busy || articles.length === 0}>
+            Перевыбрать артикулы
           </button>
           <span className="kp-toolbar-spacer" />
           <span className="kp-hint" id="kp-print-hint">
@@ -225,12 +279,28 @@ function KpScreen({ id }: { id: string }) {
       ) : null}
 
       {assets ? (
-        <PagedDocument blocks={doc.blocks} assets={assets.assets} onPaginated={(pages) => setPageCount(pages.length)} />
+        <KpEditorContext value={editor}>
+          <PagedDocument
+            blocks={doc.blocks}
+            assets={assets.assets}
+            onPaginated={(pages) => setPageCount(pages.length)}
+          />
+        </KpEditorContext>
       ) : (
         <div className="kp-pages">
           <div className="kp-status no-print">Загружаем картинки…</div>
         </div>
       )}
+
+      {picker !== null ? (
+        <ArticlePicker
+          articles={articles}
+          selected={selected}
+          mode={picker}
+          onConfirm={confirmArticles}
+          onClose={() => setPicker(null)}
+        />
+      ) : null}
     </div>
   );
 }

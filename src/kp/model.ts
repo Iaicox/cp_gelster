@@ -6,8 +6,6 @@ import { calcForm, formatMoney, isValidRate, type CalcTable } from '../../shared
 import { buildKpTitle } from '../../shared/declension.ts';
 import type { Collection, FeatureCell, KpEdits, Manager, Project } from '../../shared/schema.ts';
 
-/** How many articles get into the KP until the manager picks them (the article picker is a separate card). */
-export const DEFAULT_ARTICLES = 8;
 export const ARTICLES_PER_ROW = 4;
 export const DEFAULT_DELIVERY_COMMENT = 'Доставка до объекта рассчитывается отдельно.';
 
@@ -27,17 +25,31 @@ type BlockBase = {
 
 export type KpBlock = BlockBase &
   (
-    | { type: 'date'; date: string; client: string }
-    | { type: 'title'; text: string }
-    | { type: 'greeting'; text: string }
-    | { type: 'intro'; text: string }
-    | { type: 'collectionHeading'; text: string }
+    /* Fields derived from the form; `edited`: the manager has changed the text, it is no longer recomputed. */
+    | { type: 'date'; date: string; client: string; edited: boolean }
+    | { type: 'title'; text: string; edited: boolean }
+    | { type: 'greeting'; text: string; edited: boolean }
+    | { type: 'intro'; text: string; edited: boolean }
+    | { type: 'collectionHeading'; text: string; edited: boolean }
     | { type: 'mainImage'; src: string }
-    | { type: 'paragraph'; html: string; list: ParagraphList; /** 1-based, for numbered items. */ number?: number }
-    | { type: 'articleRow'; articles: { code: string; image: string; caption: string }[] }
+    | {
+        type: 'paragraph';
+        html: string;
+        list: ParagraphList;
+        /** 1-based, for numbered items. */
+        number?: number;
+        /** Position in splitDescription(kp.descriptionHtml). */
+        index: number;
+      }
+    | {
+        type: 'articleRow';
+        articles: { code: string; image: string; caption: string }[];
+        /** Index of the row's first article in kp.selectedArticles. */
+        first: number;
+      }
     | { type: 'paletteLink'; url: string }
     | { type: 'featuresHead'; title: string; /** Width of the table in columns (the head spans them all). */ columns: number }
-    | { type: 'featureRow'; cells: FeatureCell[] }
+    | { type: 'featureRow'; cells: FeatureCell[]; /** Index in kp.features. */ row: number }
     | { type: 'calcNote'; text: string }
     | { type: 'priceHead'; table: PriceTableId; title: string; showEuro: boolean }
     | {
@@ -54,7 +66,7 @@ export type KpBlock = BlockBase &
       }
     | { type: 'priceFoot'; table: PriceTableId; showEuro: boolean; total: string }
     | { type: 'total'; total: string }
-    | { type: 'comment'; text: string }
+    | { type: 'comment'; text: string; /** Position in buildComments(…). */ index: number }
   );
 
 export type KpBlockType = KpBlock['type'];
@@ -121,7 +133,8 @@ export function buildCollectionHeading(collection: Pick<Collection, 'flooringKin
 
 /**
  * Edits of a KP that has just been opened for the first time: everything derived from the form stays null
- * ("auto"), the rest is copied from the collection snapshot.
+ * ("auto"), the rest is copied from the collection snapshot. No articles: the manager picks them in the
+ * article picker, which opens right away.
  */
 export function createInitialKp(collection: Collection | null): KpEdits {
   const name = collection ? capitalizeWords(collection.name.trim()) : '';
@@ -132,18 +145,14 @@ export function createInitialKp(collection: Collection | null): KpEdits {
     intro: null,
     collectionHeading: null,
     descriptionHtml: collection?.descriptionHtml ?? '',
-    selectedArticles: (collection?.articles ?? []).slice(0, DEFAULT_ARTICLES).map((article) => ({
-      code: article.code,
-      image: article.image,
-      caption: `Арт. ${article.code}`,
-    })),
+    selectedArticles: [],
     featuresTitle: `Технические характеристики${name === '' ? '' : ` ${name}`}:`,
     features: collection?.features ?? [],
     comments: [],
   };
 }
 
-type ParagraphData = { html: string; list: ParagraphList; number?: number };
+export type ParagraphData = { html: string; list: ParagraphList; number?: number };
 
 /**
  * Splits the (already sanitized) description into paragraphs and list items: the unit of pagination is a
@@ -189,6 +198,35 @@ export function splitDescription(html: string): ParagraphData[] {
   }
   flushLoose();
   return result;
+}
+
+/**
+ * The inverse of splitDescription(): paragraphs back into one HTML string. Neighbouring items of one kind share
+ * a list; a numbered item with number 1 starts a new numbered list.
+ */
+export function joinDescription(paragraphs: readonly ParagraphData[]): string {
+  let html = '';
+  let open: 'ul' | 'ol' | null = null;
+  const close = () => {
+    if (open) html += `</${open}>`;
+    open = null;
+  };
+  for (const paragraph of paragraphs) {
+    if (paragraph.list === 'none') {
+      close();
+      html += `<p>${paragraph.html}</p>`;
+      continue;
+    }
+    const tag = paragraph.list === 'number' ? 'ol' : 'ul';
+    if (open !== tag || (tag === 'ol' && paragraph.number === 1)) {
+      close();
+      html += `<${tag}>`;
+      open = tag;
+    }
+    html += `<li>${paragraph.html}</li>`;
+  }
+  close();
+  return html;
 }
 
 function chunk<T>(items: readonly T[], size: number): T[][] {
@@ -252,19 +290,35 @@ function featureBlocks(title: string, rows: KpEdits['features']): KpBlock[] {
   ];
   // Rows joined by a rowSpan cell cannot be torn apart: a row keeps with the next one while a span is open.
   let openSpan = 0;
-  filled.forEach((row, index) => {
+  rows.forEach((row, index) => {
+    if (row.cells.length === 0) return;
     const span = Math.max(1, ...row.cells.map((cell) => cell.rowSpan ?? 1));
     openSpan = Math.max(openSpan - 1, span - 1);
     blocks.push({
       id: `feature-${index}`,
       type: 'featureRow',
       cells: row.cells,
+      row: index,
       group,
-      keepWithNext: openSpan > 0 && index < filled.length - 1,
+      keepWithNext: openSpan > 0 && row !== filled[filled.length - 1],
       repeatOnBreak: false,
     });
   });
   return blocks;
+}
+
+export type AutoField = 'date' | 'title' | 'greeting' | 'intro' | 'collectionHeading';
+
+/** What the fields derived from the form say while the manager has not edited them. */
+export function autoTexts(project: Project, now: Date): Record<AutoField, string> {
+  const { form, collection } = project;
+  return {
+    date: formatKpDate(now),
+    title: buildKpTitle(collection?.flooringKind ?? '', collection?.manufacturer ?? ''),
+    greeting: buildGreeting(form.clientName, form.clientSex),
+    intro: buildIntro(collection),
+    collectionHeading: buildCollectionHeading(collection),
+  };
 }
 
 export type BuildOptions = {
@@ -287,36 +341,46 @@ export function buildKpDocument(project: Project, manager: Manager | null, optio
   const plain = { keepWithNext: false, repeatOnBreak: false };
   const heading = { keepWithNext: true, repeatOnBreak: false };
 
-  blocks.push({ id: 'date', type: 'date', date: kp.date ?? formatKpDate(now), client: form.client.trim(), ...plain });
+  const auto = autoTexts(project, now);
   blocks.push({
-    id: 'title',
-    type: 'title',
-    text: kp.title ?? buildKpTitle(collection?.flooringKind ?? '', collection?.manufacturer ?? ''),
-    ...heading,
+    id: 'date',
+    type: 'date',
+    date: kp.date ?? auto.date,
+    client: form.client.trim(),
+    edited: kp.date !== null,
+    ...plain,
   });
+  blocks.push({ id: 'title', type: 'title', text: kp.title ?? auto.title, edited: kp.title !== null, ...heading });
   blocks.push({
     id: 'greeting',
     type: 'greeting',
-    text: kp.greeting ?? buildGreeting(form.clientName, form.clientSex),
+    text: kp.greeting ?? auto.greeting,
+    edited: kp.greeting !== null,
     ...heading,
   });
-  blocks.push({ id: 'intro', type: 'intro', text: kp.intro ?? buildIntro(collection), ...plain });
+  blocks.push({ id: 'intro', type: 'intro', text: kp.intro ?? auto.intro, edited: kp.intro !== null, ...plain });
 
-  const collectionHeading = kp.collectionHeading ?? buildCollectionHeading(collection);
+  const collectionHeading = kp.collectionHeading ?? auto.collectionHeading;
   if (collectionHeading !== '') {
-    blocks.push({ id: 'collectionHeading', type: 'collectionHeading', text: collectionHeading, ...heading });
+    blocks.push({
+      id: 'collectionHeading',
+      type: 'collectionHeading',
+      text: collectionHeading,
+      edited: kp.collectionHeading !== null,
+      ...heading,
+    });
   }
   if (collection?.mainImage) {
     // The photo floats beside the text that follows it, so it never ends a page.
     blocks.push({ id: 'mainImage', type: 'mainImage', src: collection.mainImage, ...heading });
   }
   splitDescription(kp.descriptionHtml).forEach((paragraph, index) => {
-    blocks.push({ id: `paragraph-${index}`, type: 'paragraph', ...paragraph, ...plain });
+    blocks.push({ id: `paragraph-${index}`, type: 'paragraph', ...paragraph, index, ...plain });
   });
 
   const articleRows = chunk(kp.selectedArticles, ARTICLES_PER_ROW);
   articleRows.forEach((articles, index) => {
-    blocks.push({ id: `articles-${index}`, type: 'articleRow', articles, ...plain });
+    blocks.push({ id: `articles-${index}`, type: 'articleRow', articles, first: index * ARTICLES_PER_ROW, ...plain });
   });
   const paletteUrl = form.link.trim() || collection?.sourceUrl || '';
   if (paletteUrl !== '') {
@@ -345,7 +409,7 @@ export function buildKpDocument(project: Project, manager: Manager | null, optio
   }
 
   buildComments(form.delivery, kp.comments).forEach((text, index) => {
-    blocks.push({ id: `comment-${index}`, type: 'comment', text, ...plain });
+    blocks.push({ id: `comment-${index}`, type: 'comment', text, index, ...plain });
   });
 
   if (!collection) warnings.push('Страница коллекции не загружена: описание, артикулы и характеристики пустые.');
