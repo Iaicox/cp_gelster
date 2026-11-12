@@ -14,6 +14,9 @@ if (PHP_VERSION_ID < 80400) {
 
 const GELSTER_MIN_PHP_VERSION_ID = 80400;
 
+// The API reports no versions (see health.php); php.ini expose_php may still add one.
+header_remove('X-Powered-By');
+
 /** True when the running PHP is new enough for this API (8.4 or later). */
 function php_version_ok(int $versionId = PHP_VERSION_ID): bool
 {
@@ -28,6 +31,14 @@ function json_response(int $status, mixed $data): never
     header('Cache-Control: no-store');
     header('X-Content-Type-Options: nosniff');
     echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+    exit;
+}
+
+/** Sends an empty 204 response and stops the script. */
+function no_content(): never
+{
+    http_response_code(204);
+    header('Cache-Control: no-store');
     exit;
 }
 
@@ -46,13 +57,23 @@ function default_config(): array
     ];
 }
 
+/** Path of api/config.php; GELSTER_CONFIG overrides it (tests only). */
+function config_path(): string
+{
+    $fromEnv = getenv('GELSTER_CONFIG');
+    if (is_string($fromEnv) && $fromEnv !== '') {
+        return $fromEnv;
+    }
+    return dirname(__DIR__) . '/config.php';
+}
+
 /**
  * Reads api/config.php (a file returning an array) over the defaults.
  * A missing file means defaults; a file that does not return an array is a setup error.
  */
 function load_config(?string $path = null): array
 {
-    $path = $path ?? dirname(__DIR__) . '/config.php';
+    $path = $path ?? config_path();
     $config = default_config();
     if (!is_file($path)) {
         return $config;
