@@ -1,0 +1,24 @@
+{
+  "id": "e2e-cocoa",
+  "version": 1,
+  "updatedAt": "2026-11-12T08:00:00.000Z",
+  "form": {
+    "managerId": "michael_smu",
+    "managerName": "Михаил Смущенко",
+    "client": "Gelingen",
+    "clientName": "Михаил",
+    "clientSex": "m",
+    "link": "https://ooogelingen.ru/m_cocoa.htm",
+    "euroRate": null,
+    "mainCurrency": "rub",
+    "extraCurrency": "rub",
+    "mainItems": [
+      { "id": "main-1", "name": "Линолеум", "qty": 150, "unit": "м²", "priceRub": 100 },
+      { "id": "main-2", "name": "", "qty": 1, "unit": "м²", "priceRub": 1 }
+    ],
+    "extraItems": [{ "id": "extra-1", "name": "Укладка", "qty": 1, "unit": "шт.", "priceRub": 20000 }],
+    "delivery": { "mode": "default", "custom": [""] }
+  },
+  "collection": null,
+  "kp": null
+}

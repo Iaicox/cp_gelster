@@ -4,7 +4,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['dist', 'legacy', 'node_modules', 'api/data'] },
+  { ignores: ['dist', 'legacy', 'node_modules', 'api/data', 'e2e/.output'] },
   js.configs.recommended,
   ...tseslint.configs.strict,
   {
@@ -14,7 +14,7 @@ export default tseslint.config(
     rules: reactHooks.configs.recommended.rules,
   },
   {
-    files: ['scripts/**/*.js', 'tests/**/*.ts', '*.{js,ts}'],
+    files: ['scripts/**/*.js', 'tests/**/*.ts', 'e2e/**/*.ts', '*.{js,ts}'],
     languageOptions: { globals: globals.node },
   },
 );
