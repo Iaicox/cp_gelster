@@ -372,11 +372,15 @@ function imageRun(image: DocxImage, size: { width: number; height: number }, nam
   return new ImageRun({ type: image.type, data: image.data, transformation: size, altText: { name, description: name, title: name } });
 }
 
-/** The main photo floats at the left of the text that follows it, a third of the column wide (as .mainContent-img). */
-function mainPhoto(image: DocxImage): ImageRun {
+/**
+ * The main photo, a third of the column wide (as .mainContent-img). Floating: at the left of the paragraph it is
+ * anchored in, the text flows around it. Without a paragraph to float in it is an ordinary inline picture.
+ */
+function mainPhoto(image: DocxImage, floating: boolean): ImageRun {
   const widthMm = (PAGE.width - PAGE.left - PAGE.right) / 3 - 15 / PX_PER_MM;
   const width = Math.round(widthMm * PX_PER_MM);
   const size = fit(image, width, width * 4);
+  if (!floating) return imageRun(image, size, 'Фото коллекции');
   const gap = 15 * EMU_PER_PX;
   return new ImageRun({
     type: image.type,
@@ -618,12 +622,12 @@ function body(doc: KpDocument, assets: DocxAssets): BodyItem[] {
   const lists = new ListCounter();
   const blocks = doc.blocks;
   /** The main photo waits for the paragraph it floats in. */
-  let photo: ImageRun | null = null;
+  let photo: DocxImage | null = null;
   let previous: KpBlock['type'] | null = null;
 
   const gap = () => items.push(new Paragraph({ style: STYLE.gap }));
   const flushPhoto = () => {
-    if (photo) items.push(new Paragraph({ style: STYLE.image, children: [photo] }));
+    if (photo) items.push(new Paragraph({ style: STYLE.image, children: [mainPhoto(photo, false)] }));
     photo = null;
   };
 
@@ -665,11 +669,11 @@ function body(doc: KpDocument, assets: DocxAssets): BodyItem[] {
         break;
       case 'mainImage': {
         const image = assets.images[block.src];
-        if (image) photo = mainPhoto(image);
+        if (image) photo = image;
         break;
       }
       case 'paragraph': {
-        const before: ParagraphChild[] = photo ? [photo] : [];
+        const before: ParagraphChild[] = photo ? [mainPhoto(photo, true)] : [];
         photo = null;
         items.push(
           textParagraph(block.html, block.list, block.number, lists, { plain: STYLE.text, item: STYLE.listItem }, before),

@@ -230,6 +230,16 @@ describe('buildDocx', () => {
     expect(Buffer.from(decoded).equals(readFileSync('public/fonts/PT_Serif-Web-Regular.ttf'))).toBe(true);
   });
 
+  it('keeps the main photo inline in a paragraph of its own when there is no description', async () => {
+    const base = project();
+    const kp = { ...(base.kp as NonNullable<Project['kp']>), descriptionHtml: '' };
+    const doc = buildKpDocument({ ...base, kp }, MANAGER, { now: new Date(2026, 10, 12) });
+    const buffer = await Packer.toBuffer(buildDocxDocument(doc, assets(doc, false)));
+    const xml = strFromU8(unzipSync(new Uint8Array(buffer))['word/document.xml'] ?? new Uint8Array());
+    expect(count(xml, /<wp:anchor /g)).toBe(0);
+    expect(xml).toMatch(/<w:pStyle w:val="KpImage"\/><\/w:pPr><w:r><w:drawing><wp:inline /);
+  });
+
   it('puts the client at a right tab stop of the date line', async () => {
     const { xml } = await build();
     expect(xml).toMatch(/<w:tab w:val="right" w:pos="10035"\/>.*?<w:tab\/><w:t[^>]*>для Gelingen<\/w:t>/s);
