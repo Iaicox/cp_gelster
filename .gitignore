@@ -1,7 +1,8 @@
 node_modules/
 dist/
-data-runtime/
 .env
 *.log
 Thumbs.db
 .DS_Store
+api/config.php
+api/data/
