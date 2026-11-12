@@ -5,7 +5,7 @@ export function PageShell({ children }: { children: ReactNode }) {
   return (
     <div className="container">
       <header className="header">
-        <img className="header_img" src="/header.jpg" alt="Гельстер" />
+        <img className="header_img" src="header.jpg" alt="Гельстер" />
       </header>
       <main className="content">{children}</main>
       <div className="br" />

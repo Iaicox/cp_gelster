@@ -1,0 +1,6 @@
+[
+  { "id": "michael_smu", "name": "Михаил Смущенко", "signature": "api/data/signatures/michael_smu.jpg" },
+  { "id": "ivan_loginov", "name": "Иван Логинов", "signature": "api/data/signatures/ivan_loginov.jpg" },
+  { "id": "max_mal", "name": "Максим Малинин", "signature": "api/data/signatures/max_mal.jpg" },
+  { "id": "barilovsky_ga", "name": "Бариловский Георгий", "signature": "api/data/signatures/barilovsky_ga.jpg" }
+]
