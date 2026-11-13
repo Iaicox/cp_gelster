@@ -49,7 +49,7 @@ function check_signature_upload(mixed $file, ?callable $isUploaded = null): arra
         default => null,
     };
     if ($ext === null) {
-        throw new UploadError(400, 'Подпись должна быть картинкой JPEG или PNG.');
+        throw new UploadError(400, 'Загружаемый файл должен быть в формате JPG или PNG.');
     }
     if ($info[0] < 1 || $info[1] < 1 || $info[0] > SIGNATURE_MAX_SIDE || $info[1] > SIGNATURE_MAX_SIDE) {
         throw new UploadError(400, 'Картинка подписи должна быть не больше 6000 × 6000 точек.');
