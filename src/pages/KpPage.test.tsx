@@ -285,6 +285,85 @@ describe('KpPage: editing in place', () => {
   });
 });
 
+describe('KpPage: main photo and palette line (docs/spec.md, section 8.1)', () => {
+  const photo = () => document.querySelector('.kp-pages .mainContent-img img');
+  const palette = () => document.querySelector('.kp-pages .linkToOtherItems');
+  // jsdom does not decode pictures: without this the photo is reported as not loaded and is not drawn.
+  const decode = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'decode');
+  beforeEach(() => {
+    HTMLImageElement.prototype.decode = () => Promise.resolve();
+  });
+  afterEach(() => {
+    if (decode) Object.defineProperty(HTMLImageElement.prototype, 'decode', decode);
+    else delete (HTMLImageElement.prototype as { decode?: unknown }).decode;
+  });
+
+  it('«×» removes the main photo for good, «Вернуть фото» brings it back', async () => {
+    const user = userEvent.setup();
+    const p = project({ selectedArticles: chosen(['350']) });
+    await openKp(p);
+    await waitFor(() => expect(photo()).not.toBeNull());
+    expect(screen.queryByRole('button', { name: 'Вернуть фото' })).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: 'Удалить главное фото' }));
+    await waitFor(() => expect(photo()).toBeNull());
+    expect((await stored(p.id)).mainImageHidden).toBe(true);
+    expect((await getProject(p.id))?.collection?.mainImage).toBe(`${SITE}/main.jpg`);
+
+    // After a reload the photo is still away.
+    cleanup();
+    await openKp((await getProject(p.id)) as Project);
+    expect(photo()).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Вернуть фото' }));
+    await waitFor(() => expect(photo()).not.toBeNull());
+    await waitFor(() => expect(document.querySelector('.kp-pages[data-ready="true"]')).not.toBeNull());
+    expect((await stored(p.id)).mainImageHidden).toBe(false);
+    expect(screen.queryByRole('button', { name: 'Вернуть фото' })).toBeNull();
+  });
+
+  it('no «Вернуть фото» when the collection has no photo', async () => {
+    const p = { ...project({ selectedArticles: chosen(['350']), mainImageHidden: true }), collection: { ...COLLECTION, mainImage: null } };
+    await openKp(p);
+    expect(screen.queryByRole('button', { name: 'Вернуть фото' })).toBeNull();
+  });
+
+  it('the palette text is edited and goes back to auto; «×» removes the line, the toolbar brings it back', async () => {
+    const user = userEvent.setup();
+    const p = project({ selectedArticles: chosen(['350']) });
+    await openKp(p);
+    const box = () => screen.getByRole('textbox', { name: 'Текст перед ссылкой на палитру' });
+    expect(box().textContent).toBe('Всю палитру можно посмотреть по ссылке:');
+    expect(palette()?.querySelector('a')?.getAttribute('href')).toBe(COLLECTION.sourceUrl);
+    expect(palette()?.querySelector('a [contenteditable]')).toBeNull();
+
+    await edit(box(), 'Остальные <b>цвета</b>:');
+    expect((await stored(p.id)).paletteText).toBe('Остальные цвета:');
+    await waitFor(() => expect(box().textContent).toBe('Остальные цвета:'));
+    await user.click(screen.getByRole('button', { name: 'Ссылка на палитру: вернуть авто' }));
+    await waitFor(async () => expect((await stored(p.id)).paletteText).toBeNull());
+    await waitFor(() => expect(box().textContent).toBe('Всю палитру можно посмотреть по ссылке:'));
+
+    expect(screen.queryByRole('button', { name: 'Вернуть ссылку на палитру' })).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Удалить ссылку на палитру' }));
+    await waitFor(() => expect(palette()).toBeNull());
+    expect((await stored(p.id)).paletteHidden).toBe(true);
+    await user.click(screen.getByRole('button', { name: 'Вернуть ссылку на палитру' }));
+    await waitFor(() => expect(palette()).not.toBeNull());
+    expect((await stored(p.id)).paletteHidden).toBe(false);
+  });
+
+  it('an older project without the new kp fields opens with the photo and the palette line', async () => {
+    const p = project({ selectedArticles: chosen(['350']) });
+    const kp: Partial<KpEdits> = { ...p.kp };
+    delete kp.mainImageHidden;
+    delete kp.paletteText;
+    delete kp.paletteHidden;
+    await openKp({ ...p, kp: kp as KpEdits });
+    await waitFor(() => expect(photo()).not.toBeNull());
+    expect(palette()).not.toBeNull();
+  });
+});
+
 describe('KpPage: «Обновить с сайта»', () => {
   it('re-reads description, features and articles, keeps the other edits, then offers the picker', async () => {
     const user = userEvent.setup();
@@ -293,6 +372,9 @@ describe('KpPage: «Обновить с сайта»', () => {
       greeting: 'Свой привет',
       descriptionHtml: '<p>Правленый абзац.</p>',
       features: [],
+      mainImageHidden: true,
+      paletteText: 'Свои слова:',
+      paletteHidden: true,
     });
     await openKp(p);
     api.fetchCollection.mockResolvedValue({ ...COLLECTION, descriptionHtml: '<p>С сайта.</p>' });
@@ -306,6 +388,10 @@ describe('KpPage: «Обновить с сайта»', () => {
     expect(kp.features).toHaveLength(3);
     expect(kp.selectedArticles).toEqual([]);
     expect(kp.greeting).toBe('Свой привет');
+    // The photo comes back with the site's content; the palette line is the manager's edit and stays.
+    expect(kp.mainImageHidden).toBe(false);
+    expect(kp.paletteText).toBe('Свои слова:');
+    expect(kp.paletteHidden).toBe(true);
     await act(async () => {});
   });
 });

@@ -689,7 +689,7 @@ function body(doc: KpDocument, assets: DocxAssets): BodyItem[] {
       }
       case 'paletteLink': {
         const link = safeLink(block.url);
-        const lead = new TextRun('Всю палитру можно посмотреть по ссылке: ');
+        const lead = new TextRun(`${block.text} `);
         items.push(
           para(STYLE.link, [
             lead,

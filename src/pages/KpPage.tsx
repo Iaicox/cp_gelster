@@ -26,8 +26,9 @@ function messageOf(error: unknown): string {
 
 /**
  * Puts a freshly parsed collection into the project (first load, another link, «Обновить с сайта»): the
- * description, the features and the choice of articles (with their captions) start anew. The edited date,
- * title, greeting, intro, collection heading and the comments are kept.
+ * description, the features, the choice of articles (with their captions) and the removed main photo start
+ * anew. The edited date, title, greeting, intro, collection heading, the comments and the palette line (its text
+ * and whether it is removed: the manager's edit, not the site's content) are kept.
  */
 export function withCollection(project: Project, collection: Collection): Project {
   const fresh = createInitialKp(collection);
@@ -39,6 +40,7 @@ export function withCollection(project: Project, collection: Collection): Projec
         featuresTitle: fresh.featuresTitle,
         features: fresh.features,
         selectedArticles: fresh.selectedArticles,
+        mainImageHidden: false,
       }
     : fresh;
   return { ...project, collection, kp, updatedAt: new Date().toISOString() };
@@ -242,6 +244,8 @@ function KpScreen({ id }: { id: string }) {
   const canRefresh = loaded.project.form.link.trim() !== '';
   const articles = loaded.project.collection?.articles ?? [];
   const selected = loaded.project.kp?.selectedArticles ?? [];
+  const canRestorePhoto = loaded.project.kp?.mainImageHidden === true && loaded.project.collection?.mainImage != null;
+  const canRestorePalette = loaded.project.kp?.paletteHidden === true;
 
   function confirmArticles(chosen: typeof selected) {
     setPicker(null);
@@ -267,6 +271,16 @@ function KpScreen({ id }: { id: string }) {
           <button type="button" onClick={() => setPicker('reselect')} disabled={busy || articles.length === 0}>
             Перевыбрать артикулы
           </button>
+          {canRestorePhoto ? (
+            <button type="button" onClick={() => editor.apply({ kind: 'mainImageHidden', hidden: false })}>
+              Вернуть фото
+            </button>
+          ) : null}
+          {canRestorePalette ? (
+            <button type="button" onClick={() => editor.apply({ kind: 'paletteHidden', hidden: false })}>
+              Вернуть ссылку на палитру
+            </button>
+          ) : null}
           <span className="kp-toolbar-spacer" />
           <span className="kp-hint" id="kp-print-hint">
             Если появились поля: Печать → Поля → По умолчанию

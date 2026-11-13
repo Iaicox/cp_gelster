@@ -2,7 +2,9 @@
  * Choosing articles and editing in place, end to end: the choice and the edits survive a reload of the page and
  * a trip to the form, where a price is changed; controls never reach the PDF.
  */
+import { readFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
+import { strFromU8, unzipSync } from 'fflate';
 import { mockNetwork, openKp, pickArticles, projectFixture, readPdf, seed } from './helpers.ts';
 
 /** The project record as the app has stored it. */
@@ -112,4 +114,81 @@ test('controls are not printed: as many sheets as pages, no button text in the P
   await page.getByRole('button', { name: 'Обращение: вернуть авто' }).click();
   await expect(greeting).toHaveText('Уважаемый Михаил!');
   expect((await storedKp(page, project.id)).greeting).toBeNull();
+});
+
+/** word/document.xml of the DOCX the page saves now. */
+async function docxXml(page: Page, path: string): Promise<string> {
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Сохранить в DOCX' }).click();
+  await (await download).saveAs(path);
+  return strFromU8(unzipSync(new Uint8Array(readFileSync(path)))['word/document.xml'] ?? new Uint8Array());
+}
+
+test('the main photo and the palette line are removed, edited and brought back (spec 8.1)', async ({ page }, testInfo) => {
+  await mockNetwork(page);
+  const project = projectFixture();
+  await seed(page, [project]);
+  await openKp(page, project.id);
+  const ready = () => page.locator('.kp-pages[data-ready="true"]').waitFor();
+  const photo = page.locator('.kp-pages .mainContent-img img');
+  const palette = page.locator('.kp-pages .linkToOtherItems');
+  const paletteText = page.getByRole('textbox', { name: 'Текст перед ссылкой на палитру' });
+  await expect(photo).toHaveCount(1);
+  await expect(page.getByRole('button', { name: 'Вернуть фото' })).toHaveCount(0);
+
+  // «×» on the photo: gone from the pages, the print and the DOCX, and still gone after a reload.
+  await photo.hover();
+  await page.getByRole('button', { name: 'Удалить главное фото' }).click();
+  await expect(photo).toHaveCount(0);
+  await ready();
+  await page.reload();
+  await ready();
+  await expect(photo).toHaveCount(0);
+  const pdf = await readPdf(await page.pdf({ preferCSSPageSize: true }));
+  expect(pdf.pages).toHaveLength(await page.locator('.kp-pages .kp-page').count());
+  expect(await docxXml(page, testInfo.outputPath('no-photo.docx'))).not.toContain('<wp:anchor ');
+
+  // The palette text: edited in one line, kept after a reload, in the DOCX too; the address stays a link.
+  await paletteText.click();
+  await page.keyboard.press('Control+A');
+  await page.keyboard.type('Другие цвета коллекции:');
+  await page.keyboard.press('Enter');
+  await expect(paletteText).toHaveText('Другие цвета коллекции:');
+  await ready();
+  await page.reload();
+  await ready();
+  await expect(paletteText).toHaveText('Другие цвета коллекции:');
+  await expect(palette.locator('a')).toHaveAttribute('href', String(project.form.link));
+  expect(await docxXml(page, testInfo.outputPath('palette.docx'))).toContain('Другие цвета коллекции: </w:t>');
+  await palette.hover();
+  await page.getByRole('button', { name: 'Ссылка на палитру: вернуть авто' }).click();
+  await expect(paletteText).toHaveText('Всю палитру можно посмотреть по ссылке:');
+
+  // «×» on the line, then the toolbar brings it back.
+  await palette.hover();
+  await page.getByRole('button', { name: 'Удалить ссылку на палитру' }).click();
+  await expect(palette).toHaveCount(0);
+  expect(await docxXml(page, testInfo.outputPath('no-palette.docx'))).not.toContain('Всю палитру');
+  await page.getByRole('button', { name: 'Вернуть ссылку на палитру' }).click();
+  await expect(palette).toHaveCount(1);
+
+  // «Вернуть фото»: the picture is loaded again and the pages are laid out anew.
+  await page.getByRole('button', { name: 'Вернуть фото' }).click();
+  await ready();
+  await expect(photo).toHaveCount(1);
+  await expect(photo).toBeVisible();
+  expect(await photo.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
+  await expect(page.getByRole('button', { name: 'Вернуть фото' })).toHaveCount(0);
+  expect(await docxXml(page, testInfo.outputPath('photo.docx'))).toContain('<wp:anchor ');
+
+  // «Обновить с сайта» brings a removed photo back as well.
+  await photo.hover();
+  await page.getByRole('button', { name: 'Удалить главное фото' }).click();
+  await expect(photo).toHaveCount(0);
+  page.once('dialog', (dialog) => void dialog.accept());
+  await page.getByRole('button', { name: 'Обновить с сайта' }).click();
+  await page.getByRole('dialog', { name: 'Выберите артикулы' }).waitFor();
+  await pickArticles(page, 2);
+  await ready();
+  await expect(photo).toHaveCount(1);
 });

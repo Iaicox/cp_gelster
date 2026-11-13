@@ -5,7 +5,7 @@ import type { AutoField, KpBlock } from '../model.ts';
 import type { Placed } from '../paginate.ts';
 import { clean, Control, Editable, escapeHtml, readBlocks, readText, useKpEditor } from './Editable.tsx';
 import { ArticlesTable, FeaturesTable, PriceTable, TotalTable } from './Tables.tsx';
-import { toSegments, type Segment } from './segments.ts';
+import { toSegments, type PageSegment, type Segment } from './segments.ts';
 
 type Paragraph = Extract<KpBlock, { type: 'paragraph' }>;
 
@@ -136,6 +136,51 @@ function Comment({ block }: { block: Extract<KpBlock, { type: 'comment' }> }) {
   );
 }
 
+/** The main photo floats left of the description; «×» removes it from the KP (docs/spec.md, section 8.1). */
+function MainImage({ block, assets }: { block: Extract<KpBlock, { type: 'mainImage' }>; assets: KpAssets }) {
+  const editor = useKpEditor();
+  const image = assets.images[block.src];
+  if (!image) return null;
+  return (
+    <div className="mainContent-img kp-edit-host">
+      <img src={image.src} width={image.width} height={image.height} alt="" />
+      {editor ? (
+        <Control label="Удалить главное фото" onClick={() => editor.apply({ kind: 'mainImageHidden', hidden: true })}>
+          ×
+        </Control>
+      ) : null}
+    </div>
+  );
+}
+
+/** «Всю палитру можно посмотреть по ссылке: <адрес>»: the text is edited in one line, the address is not. */
+function PaletteLink({ block }: { block: Extract<KpBlock, { type: 'paletteLink' }> }) {
+  const editor = useKpEditor();
+  return (
+    <div className="linkToOtherItems kp-edit-host">
+      <span>
+        <Editable
+          tag="span"
+          html={escapeHtml(block.text)}
+          label="Текст перед ссылкой на палитру"
+          commit={editor ? (element) => editor.apply({ kind: 'paletteText', value: readText(element) }) : undefined}
+        />{' '}
+        <a href={block.url}>{block.url}</a>
+      </span>
+      {editor && block.edited ? (
+        <Control label="Ссылка на палитру: вернуть авто" onClick={() => editor.apply({ kind: 'paletteText', value: null })}>
+          вернуть авто
+        </Control>
+      ) : null}
+      {editor ? (
+        <Control label="Удалить ссылку на палитру" onClick={() => editor.apply({ kind: 'paletteHidden', hidden: true })}>
+          ×
+        </Control>
+      ) : null}
+    </div>
+  );
+}
+
 function Single({ block, assets }: { block: Extract<Segment, { kind: 'single' }>['block']; assets: KpAssets }) {
   switch (block.type) {
     case 'date':
@@ -179,22 +224,10 @@ function Single({ block, assets }: { block: Extract<Segment, { kind: 'single' }>
           />
         </div>
       );
-    case 'mainImage': {
-      const image = assets.images[block.src];
-      return image ? (
-        <div className="mainContent-img">
-          <img src={image.src} width={image.width} height={image.height} alt="" />
-        </div>
-      ) : null;
-    }
+    case 'mainImage':
+      return <MainImage block={block} assets={assets} />;
     case 'paletteLink':
-      return (
-        <div className="linkToOtherItems">
-          <span>
-            Всю палитру можно посмотреть по ссылке: <a href={block.url}>{block.url}</a>
-          </span>
-        </div>
-      );
+      return <PaletteLink block={block} />;
     case 'calcNote':
       return <h3 className="preliminary-calc">{block.text}</h3>;
     case 'total':
@@ -206,11 +239,17 @@ function Single({ block, assets }: { block: Extract<Segment, { kind: 'single' }>
   }
 }
 
+const GAP_CLASS: Record<PageSegment['gapBefore'], string> = {
+  none: 'kp-segment',
+  small: 'kp-segment kp-gap-small',
+  normal: 'kp-segment kp-gap',
+};
+
 export function PageContent({ items, assets }: { items: readonly Placed<KpBlock>[]; assets: KpAssets }) {
   return (
     <>
       {toSegments(items).map((segment) => (
-        <div key={segment.key} className={segment.gapBefore ? 'kp-segment kp-gap' : 'kp-segment'}>
+        <div key={segment.key} className={GAP_CLASS[segment.gapBefore]}>
           {segment.kind === 'text' ? <TextColumn paragraphs={segment.paragraphs} /> : null}
           {segment.kind === 'articles' ? <ArticlesTable segment={segment} assets={assets} /> : null}
           {segment.kind === 'features' ? <FeaturesTable segment={segment} /> : null}

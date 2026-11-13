@@ -111,6 +111,12 @@ export const KpEditsSchema = z.object({
   featuresTitle: z.string(),
   features: z.array(FeatureRowSchema),
   comments: z.array(z.string()),
+  /** The main photo has been removed from the KP page (docs/spec.md, section 8.1). Absent in older records. */
+  mainImageHidden: z.boolean().default(false),
+  /** Text before the palette link; null = auto. */
+  paletteText: z.string().nullable().default(null),
+  /** The «Всю палитру…» line has been removed. */
+  paletteHidden: z.boolean().default(false),
 });
 export type KpEdits = z.infer<typeof KpEditsSchema>;
 

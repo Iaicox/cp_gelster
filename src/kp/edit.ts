@@ -4,7 +4,15 @@
  * nothing returns the same project object, so the caller knows there is nothing to save.
  */
 import type { FeatureCell, KpEdits, Project } from '../../shared/schema.ts';
-import { autoTexts, buildComments, createInitialKp, joinDescription, splitDescription, type AutoField } from './model.ts';
+import {
+  autoTexts,
+  buildComments,
+  createInitialKp,
+  DEFAULT_PALETTE_TEXT,
+  joinDescription,
+  splitDescription,
+  type AutoField,
+} from './model.ts';
 
 export type KpChange =
   /** null: back to the text derived from the form. */
@@ -15,7 +23,13 @@ export type KpChange =
   | { kind: 'featuresTitle'; text: string }
   | { kind: 'featureCell'; row: number; cell: number; html: string }
   | { kind: 'deleteFeatureRow'; row: number }
-  | { kind: 'comment'; index: number; text: string };
+  | { kind: 'comment'; index: number; text: string }
+  /** Removes (true) or brings back (false) the main photo. */
+  | { kind: 'mainImageHidden'; hidden: boolean }
+  /** Removes (true) or brings back (false) the «Всю палитру…» line. */
+  | { kind: 'paletteHidden'; hidden: boolean }
+  /** Text before the palette link; null, empty or the default text: back to auto. */
+  | { kind: 'paletteText'; value: string | null };
 
 function withKp(project: Project, kp: KpEdits): Project {
   return { ...project, kp };
@@ -65,6 +79,15 @@ export function applyChange(project: Project, change: KpChange, now: Date = new 
       return withKp(project, { ...kp, features: deleteFeatureRow(kp.features, change.row) });
     case 'comment':
       return editComment(project, kp, change.index, change.text.trim());
+    case 'mainImageHidden':
+      return kp.mainImageHidden === change.hidden ? project : withKp(project, { ...kp, mainImageHidden: change.hidden });
+    case 'paletteHidden':
+      return kp.paletteHidden === change.hidden ? project : withKp(project, { ...kp, paletteHidden: change.hidden });
+    case 'paletteText': {
+      let value = change.value;
+      if (value !== null && (value.trim() === '' || value === DEFAULT_PALETTE_TEXT)) value = null;
+      return kp.paletteText === value ? project : withKp(project, { ...kp, paletteText: value });
+    }
   }
 }
 

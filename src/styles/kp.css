@@ -216,6 +216,11 @@
 	margin-top: 19px;
 }
 
+/* Between neighbouring comments, as .comment-text of the legacy page. */
+.kp-gap-small {
+	margin-top: 5px;
+}
+
 /* The greeting continues the title block: one .intro in the legacy markup. */
 .kp-greeting {
 	margin-top: 0;
@@ -283,6 +288,18 @@
 .kp-edit-host:hover > .kp-control,
 .kp-edit-host:focus-within > .kp-control {
 	opacity: 1;
+}
+
+/* The paragraphs beside the photo are positioned hosts too and would cover the float (and its «×») for the
+   pointer: the photo stacks above them. */
+.kp-pages .mainContent-img.kp-edit-host {
+	z-index: 1;
+}
+
+/* The photo's «×» sits on its top right corner (the float has a 15px right padding). */
+.kp-pages .mainContent-img > .kp-control {
+	top: 4px;
+	right: 19px;
 }
 
 /* In a table the row's «×» stands in the left margin, outside the cells. */
