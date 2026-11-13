@@ -80,6 +80,21 @@ function articles(doc: Document, url: string): Article[] {
   return result;
 }
 
+const BACKGROUND_URL = /background(?:-image)?\s*:[^;]*?url\(\s*(['"]?)([^'")]+?)\1\s*\)/i;
+
+/**
+ * Main photo: the banner `.big-background` above the description. It is a CSS background in the `style` attribute;
+ * parsed with a regular expression instead of CSSOM, which differs between jsdom and browsers. Lazy-loading
+ * attributes are the fallback. The neighbouring `.collection-review` is the video cover, not the photo.
+ */
+function mainImage(doc: Document, url: string): string | null {
+  const el = doc.querySelector('.big-background');
+  if (!el) return null;
+  const fromStyle = BACKGROUND_URL.exec(el.getAttribute('style') ?? '')?.[2];
+  const value = fromStyle ?? el.getAttribute('data-src') ?? el.getAttribute('data-bg') ?? el.getAttribute('data-background');
+  return absoluteUrl(value, url);
+}
+
 /** gelster.ru: selectors derived from the saved pages (marmoleum_cocoa, coral-class, dollken_al). */
 export function parseGelster(doc: Document, url: string): ParsedPage {
   const name = normalizeName(textOf(doc.querySelector('h1.name') ?? doc.querySelector('h1')));
@@ -89,8 +104,7 @@ export function parseGelster(doc: Document, url: string): ParsedPage {
     flooringKind: flooringKind(doc, name),
     manufacturer: '',
     descriptionHtml: description(doc, url),
-    // gelster.ru has no main photo next to the description.
-    mainImage: null,
+    mainImage: mainImage(doc, url),
     articles: articles(doc, url),
     features: features(doc, url),
     warnings: [],

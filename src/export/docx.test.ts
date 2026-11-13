@@ -240,6 +240,24 @@ describe('buildDocx', () => {
     expect(xml).toMatch(/<w:pStyle w:val="KpImage"\/><\/w:pPr><w:r><w:drawing><wp:inline /);
   });
 
+  it('a gelster.ru page gets its banner as the main photo floating beside the description', async () => {
+    const url = 'https://gelster.ru/marmoleum_cocoa.htm';
+    const html = readFileSync('shared/parsers/__fixtures__/gelster.ru/marmoleum_cocoa.htm', 'utf8');
+    const collection = parseCollection(html, url, '2026-11-01T00:00:00.000Z');
+    const base = project();
+    const kp = { ...createInitialKp(collection), selectedArticles: [] };
+    const doc = buildKpDocument({ ...base, form: { ...base.form, link: url }, collection, kp }, MANAGER, {
+      now: new Date(2026, 10, 12),
+    });
+    const photo = 'https://gelster.ru/img/collections/marmoleum/m_cocoa/catalog-in-new_03.jpg';
+    const at = doc.blocks.findIndex((block) => block.type === 'mainImage');
+    expect(doc.blocks[at]).toMatchObject({ type: 'mainImage', src: photo });
+    expect(doc.blocks[at + 1]?.type).toBe('paragraph');
+    const buffer = await Packer.toBuffer(buildDocxDocument(doc, assets(doc, false)));
+    const xml = strFromU8(unzipSync(new Uint8Array(buffer))['word/document.xml'] ?? new Uint8Array());
+    expect(count(xml, /<wp:anchor /g)).toBe(1);
+  });
+
   it('puts the client at a right tab stop of the date line', async () => {
     const { xml } = await build();
     expect(xml).toMatch(/<w:tab w:val="right" w:pos="10035"\/>.*?<w:tab\/><w:t[^>]*>для Gelingen<\/w:t>/s);
