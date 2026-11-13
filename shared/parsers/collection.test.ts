@@ -79,7 +79,7 @@ const CASES: Expected[] = [
     manufacturer: '',
     codes: ['3584', '3580', '3581', '3582', '3583'],
     featureRows: 15,
-    mainImage: null,
+    mainImage: 'https://gelster.ru/img/collections/marmoleum/m_cocoa/catalog-in-new_03.jpg',
     warnings: ['Не найден производитель: заголовок КП составлен без него'],
   },
   {
@@ -90,7 +90,7 @@ const CASES: Expected[] = [
     manufacturer: '',
     codes: '4701 4721 4727 4730 4744 4750 4752 4754 4756 4751 4764 4766 4759 4758 4774 4753'.split(' '),
     featureRows: 15,
-    mainImage: null,
+    mainImage: 'https://gelster.ru/img/collections/entrance-flooring/forbo-entrance-flooring/coral-classic/images/catalog-in-kovrolin_03.jpg',
     warnings: ['Не найден производитель: заголовок КП составлен без него'],
   },
   {
@@ -101,7 +101,7 @@ const CASES: Expected[] = [
     manufacturer: '',
     codes: ['0110'],
     featureRows: 2,
-    mainImage: null,
+    mainImage: 'https://gelster.ru/img/Katalog/Dollken-plintus/Al403/catalog-in-DOLLKEN_03.jpg',
     warnings: ['Не найден производитель: заголовок КП составлен без него'],
   },
 ];
@@ -196,6 +196,42 @@ describe('parseCollection: details', () => {
   it('gelster: line breaks inside a feature value are kept', () => {
     const collection = parseCollection(load('gelster.ru/coral-class.htm'), 'https://gelster.ru/coral-class.htm');
     expect(collection.features[3]?.cells[1]?.html).toBe('27,5 x 1,05 м<br>27,5 x 1,55 м<br>27,5 x 2,05 м<br>0,55 x 0,90 м<br>0,90 x 1,50 м<br>1,35 x 2,05 м<br>2,05 x 3,00 м');
+  });
+
+  it('gelster: main photo is the .big-background banner, not the .collection-review video cover', () => {
+    const html = `<h1 class="name">x</h1><div class="gallery">
+      <div class="collection-review" style="background-image: url(./img/video.jpg)"></div>
+      <div
+        class="big-background"
+        style="
+          background-image: url(./img/a/main.jpg);
+        "
+      ></div></div>`;
+    const collection = parseCollection(html, 'https://gelster.ru/x.htm');
+    expect(collection.mainImage).toBe('https://gelster.ru/img/a/main.jpg');
+    expect(collection.warnings).not.toContain('Не найдено главное фото');
+  });
+
+  it.each([
+    ['background-image: url("img/q.jpg")', 'https://gelster.ru/img/q.jpg'],
+    ["background-image:url( 'img/q.jpg' );", 'https://gelster.ru/img/q.jpg'],
+    ['background: #fff url(/img/q.jpg) no-repeat center / cover', 'https://gelster.ru/img/q.jpg'],
+    ['BACKGROUND-IMAGE: URL(https://cdn.gelster.ru/q.jpg)', 'https://cdn.gelster.ru/q.jpg'],
+  ])('gelster: main photo from style %s', (style, expected) => {
+    const html = `<h1 class="name">x</h1><div class="big-background" style="${style.replaceAll('"', '&quot;')}"></div>`;
+    expect(parseCollection(html, 'https://gelster.ru/x.htm').mainImage).toBe(expected);
+  });
+
+  it('gelster: lazy-loading attribute is the fallback when style has no url', () => {
+    const html = '<h1 class="name">x</h1><div class="big-background" style="height: 10px" data-bg="./img/lazy.jpg"></div>';
+    expect(parseCollection(html, 'https://gelster.ru/x.htm').mainImage).toBe('https://gelster.ru/img/lazy.jpg');
+  });
+
+  it('gelster: page without .big-background has no photo and a warning', () => {
+    const html = '<h1 class="name">x</h1><div class="collection-review" style="background-image: url(v.jpg)"></div>';
+    const collection = parseCollection(html, 'https://gelster.ru/x.htm');
+    expect(collection.mainImage).toBeNull();
+    expect(collection.warnings).toContain('Не найдено главное фото');
   });
 
   it('URLs resolve against the final address (X-Final-Url), www included', () => {
