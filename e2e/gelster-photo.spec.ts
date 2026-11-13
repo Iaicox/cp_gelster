@@ -37,8 +37,9 @@ test('gelster.ru page: the banner is the main photo in the preview, in print and
   await pickArticles(page, 2);
 
   expect(network.imageRequests).toContain(PHOTO);
-  await expect(page.getByText('Не найден производитель')).toBeVisible(); // collection warnings are listed…
-  await expect(page.getByText('Не найдено главное фото')).toHaveCount(0); // …but not this one
+  // gelster.ru never names the manufacturer: that warning was dropped (docs/spec.md, section 8.1).
+  await expect(page.getByText('Не найден производитель')).toHaveCount(0);
+  await expect(page.getByText('Не найдено главное фото')).toHaveCount(0);
   await expectPhotoLeftOfDescription(page);
 
   // The PDF is printed from the same pages with print styles.

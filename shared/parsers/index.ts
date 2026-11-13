@@ -39,12 +39,17 @@ const ADAPTERS: Record<Site, (doc: Document, url: string) => ParsedPage> = {
   ooogelingen: parseOoogelingen,
 };
 
+/**
+ * The warning about a missing manufacturer is no longer produced (docs/spec.md, section 8.1), but it is stored
+ * in collection snapshots of older projects: the KP model filters it out by exact match.
+ */
+export const MISSING_MANUFACTURER_WARNING = 'Не найден производитель: заголовок КП составлен без него';
+
 /** Field-level warnings: a missing field never stops parsing. */
 function fieldWarnings(page: ParsedPage): string[] {
   const warnings: string[] = [];
   if (!page.name) warnings.push('Не найдено название коллекции');
   if (!page.flooringKind) warnings.push('Не найден вид покрытия: заголовок КП составлен без него');
-  if (!page.manufacturer) warnings.push('Не найден производитель: заголовок КП составлен без него');
   if (!page.descriptionHtml) warnings.push('Не найдено описание коллекции');
   if (!page.mainImage) warnings.push('Не найдено главное фото');
   if (page.articles.length === 0) warnings.push('Не найдены артикулы');
