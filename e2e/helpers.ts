@@ -10,6 +10,7 @@ const SITE_FIXTURES = 'shared/parsers/__fixtures__/'; // Playwright runs from th
 const PAGES: Record<string, string> = {
   'https://ooogelingen.ru/m_cocoa.htm': 'ooogelingen.ru/m_cocoa.htm',
   'https://ooogelingen.ru/coral_classic.htm': 'ooogelingen.ru/coral_classic.htm',
+  'https://gelster.ru/marmoleum_cocoa.htm': 'gelster.ru/marmoleum_cocoa.htm',
 };
 
 export const MANAGERS = [

@@ -40,14 +40,13 @@ const ADAPTERS: Record<Site, (doc: Document, url: string) => ParsedPage> = {
 };
 
 /** Field-level warnings: a missing field never stops parsing. */
-function fieldWarnings(page: ParsedPage, site: Site): string[] {
+function fieldWarnings(page: ParsedPage): string[] {
   const warnings: string[] = [];
   if (!page.name) warnings.push('Не найдено название коллекции');
   if (!page.flooringKind) warnings.push('Не найден вид покрытия: заголовок КП составлен без него');
   if (!page.manufacturer) warnings.push('Не найден производитель: заголовок КП составлен без него');
   if (!page.descriptionHtml) warnings.push('Не найдено описание коллекции');
-  // gelster.ru has no main photo by design (docs/spec.md, section 7).
-  if (!page.mainImage && site !== 'gelster') warnings.push('Не найдено главное фото');
+  if (!page.mainImage) warnings.push('Не найдено главное фото');
   if (page.articles.length === 0) warnings.push('Не найдены артикулы');
   if (page.features.length === 0) warnings.push('Не найдены технические характеристики');
   return warnings;
@@ -75,6 +74,6 @@ export function parseCollection(html: string, url: string, fetchedAt: string = n
     mainImage: page.mainImage,
     articles: page.articles,
     features: page.features,
-    warnings: [...page.warnings, ...fieldWarnings(page, site)],
+    warnings: [...page.warnings, ...fieldWarnings(page)],
   };
 }
