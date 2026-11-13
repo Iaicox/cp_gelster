@@ -174,3 +174,45 @@ describe('deleteFeatureRow keeps the table whole', () => {
     for (let i = 0; i < spanned.length; i++) expect(width(deleteFeatureRow(spanned, i)).every((n) => n === 2)).toBe(true);
   });
 });
+
+describe('applyChange: main photo and palette line (docs/spec.md, section 8.1)', () => {
+  const withPhoto = (kp: Partial<KpEdits> = {}): Project => ({
+    ...project(kp),
+    collection: { ...COLLECTION, mainImage: 'https://ooogelingen.ru/main.jpg' },
+  });
+  const types = (p: Project) => blocksOf(p).map((b) => b.type);
+
+  it('hides the main photo and brings it back; the snapshot keeps its address', () => {
+    const start = withPhoto();
+    expect(types(start)).toContain('mainImage');
+    const hidden = applyChange(start, { kind: 'mainImageHidden', hidden: true }, NOW);
+    expect(hidden.kp?.mainImageHidden).toBe(true);
+    expect(hidden.collection?.mainImage).toBe('https://ooogelingen.ru/main.jpg');
+    expect(types(hidden)).not.toContain('mainImage');
+    expect(applyChange(hidden, { kind: 'mainImageHidden', hidden: true }, NOW)).toBe(hidden);
+    const back = applyChange(hidden, { kind: 'mainImageHidden', hidden: false }, NOW);
+    expect(types(back)).toContain('mainImage');
+    expect(applyChange(start, { kind: 'mainImageHidden', hidden: false }, NOW)).toBe(start);
+  });
+
+  it('hides the palette line and brings it back', () => {
+    const start = project();
+    const hidden = applyChange(start, { kind: 'paletteHidden', hidden: true }, NOW);
+    expect(types(hidden)).not.toContain('paletteLink');
+    expect(applyChange(hidden, { kind: 'paletteHidden', hidden: true }, NOW)).toBe(hidden);
+    expect(types(applyChange(hidden, { kind: 'paletteHidden', hidden: false }, NOW))).toContain('paletteLink');
+  });
+
+  it('palette text: edited, then back to auto when emptied, equal to the default or reset', () => {
+    const start = project();
+    const edited = applyChange(start, { kind: 'paletteText', value: 'Остальные цвета:' }, NOW);
+    expect(edited.kp?.paletteText).toBe('Остальные цвета:');
+    expect(blocksOf(edited).find((b) => b.type === 'paletteLink')).toMatchObject({ text: 'Остальные цвета:', edited: true });
+    expect(applyChange(edited, { kind: 'paletteText', value: 'Остальные цвета:' }, NOW)).toBe(edited);
+    expect(applyChange(edited, { kind: 'paletteText', value: '  ' }, NOW).kp?.paletteText).toBeNull();
+    expect(applyChange(edited, { kind: 'paletteText', value: null }, NOW).kp?.paletteText).toBeNull();
+    const same = applyChange(edited, { kind: 'paletteText', value: 'Всю палитру можно посмотреть по ссылке:' }, NOW);
+    expect(same.kp?.paletteText).toBeNull();
+    expect(applyChange(start, { kind: 'paletteText', value: '' }, NOW)).toBe(start);
+  });
+});

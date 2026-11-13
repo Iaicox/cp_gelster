@@ -46,6 +46,7 @@ test('signature: PHP code named .jpg is refused', function (): void {
         file_put_contents($dir . '/shell.jpg', '<?php system($_GET["c"]); ?>');
         $e = expect_throws(UploadError::class, fn() => check_signature_upload(upload_entry($dir . '/shell.jpg'), always_uploaded()));
         assert_same(400, $e->httpStatus);
+        assert_same('Загружаемый файл должен быть в формате JPG или PNG.', $e->getMessage());
     });
 });
 
@@ -54,6 +55,7 @@ test('signature: a GIF (not JPEG/PNG) is refused', function (): void {
         file_put_contents($dir . '/g', base64_decode('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'));
         $e = expect_throws(UploadError::class, fn() => check_signature_upload(upload_entry($dir . '/g'), always_uploaded()));
         assert_same(400, $e->httpStatus);
+        assert_same('Загружаемый файл должен быть в формате JPG или PNG.', $e->getMessage());
     });
 });
 

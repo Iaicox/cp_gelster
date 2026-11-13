@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
+import { cleanup, createEvent, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -107,8 +107,120 @@ describe('ManagersPage', () => {
     await screen.findByText('Добавить менеджера');
     await user.type(screen.getByLabelText('Имя'), 'Ольга');
     await user.upload(screen.getByLabelText('Подпись (JPG или PNG)'), new File(['x'], 'a.gif', { type: 'image/gif' }));
-    expect(screen.getByText('Подпись — картинка JPG или PNG.')).toBeTruthy();
+    expect(screen.getByText('Загружаемый файл должен быть в формате JPG или PNG.')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Добавить' })).toHaveProperty('disabled', true);
+  });
+
+  async function openForm(user: ReturnType<typeof userEvent.setup>) {
+    renderPage();
+    await screen.findByText('Иван Петров');
+    await logIn(user);
+    await screen.findByText('Добавить менеджера');
+  }
+
+  const PNG = () => new File([new Uint8Array([0x89, 0x50])], 'olga.png', { type: 'image/png' });
+  const PDF = () => new File(['%PDF'], 'a.pdf', { type: 'application/pdf' });
+  const form = () => {
+    const found = screen.getByRole('heading', { name: 'Добавить менеджера' }).closest('form');
+    if (!found) throw new Error('no add-manager form');
+    return found;
+  };
+  const dropZone = () => screen.getByText('Перетащите картинку сюда или вставьте из буфера (Ctrl+V)');
+
+  it('a dropped PNG shows a preview, is sent, and the form is cleared', async () => {
+    const added = { id: 'olga', name: 'Ольга', signature: 'api/data/signatures/olga.png' };
+    api.addManager.mockResolvedValue(added);
+    const user = userEvent.setup();
+    await openForm(user);
+    await user.type(screen.getByLabelText('Имя'), 'Ольга');
+    const file = PNG();
+    fireEvent.dragOver(dropZone(), { dataTransfer: { files: [file], dropEffect: 'none' } });
+    expect(dropZone().className).toContain('drag-over');
+    fireEvent.drop(dropZone(), { dataTransfer: { files: [file] } });
+    expect(dropZone().className).not.toContain('drag-over');
+    expect(screen.getByAltText('Предпросмотр подписи').getAttribute('src')).toBe('blob:preview');
+    await user.click(screen.getByRole('button', { name: 'Добавить' }));
+    expect(api.addManager).toHaveBeenCalledWith('secret', 'Ольга', file);
+    await screen.findByText('Ольга');
+    expect(screen.getByLabelText('Имя')).toHaveProperty('value', '');
+    expect(screen.queryByAltText('Предпросмотр подписи')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Добавить' })).toHaveProperty('disabled', true);
+  });
+
+  it('a pasted image from clipboardData.files is used', async () => {
+    api.addManager.mockResolvedValue({ id: 'olga', name: 'Ольга', signature: 'x.png' });
+    const user = userEvent.setup();
+    await openForm(user);
+    await user.type(screen.getByLabelText('Имя'), 'Ольга');
+    const file = PNG();
+    const event = createEvent.paste(screen.getByLabelText('Имя'), { clipboardData: { files: [file], items: [] } });
+    fireEvent(screen.getByLabelText('Имя'), event);
+    expect(event.defaultPrevented).toBe(true);
+    expect(screen.getByAltText('Предпросмотр подписи')).toBeTruthy();
+    expect(screen.getByLabelText('Имя')).toHaveProperty('value', 'Ольга');
+    await user.click(screen.getByRole('button', { name: 'Добавить' }));
+    expect(api.addManager).toHaveBeenCalledWith('secret', 'Ольга', file);
+    await screen.findByText('Ольга');
+    expect(screen.queryByAltText('Предпросмотр подписи')).toBeNull();
+  });
+
+  it('a pasted screenshot without a name comes from items and is named signature.png', async () => {
+    api.addManager.mockResolvedValue({ id: 'olga', name: 'Ольга', signature: 'x.png' });
+    const user = userEvent.setup();
+    await openForm(user);
+    await user.type(screen.getByLabelText('Имя'), 'Ольга');
+    const blob = new File([new Uint8Array([0x89, 0x50])], '', { type: 'image/png' });
+    const items = [
+      { kind: 'string', getAsFile: () => null },
+      { kind: 'file', getAsFile: () => blob },
+    ];
+    fireEvent.paste(form(), { clipboardData: { files: [], items } });
+    expect(screen.getByAltText('Предпросмотр подписи')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'Добавить' }));
+    const sent = api.addManager.mock.calls[0]?.[2] as File;
+    expect(sent.name).toBe('signature.png');
+    expect(sent.type).toBe('image/png');
+  });
+
+  it('pasting text into the name field works as usual', async () => {
+    const user = userEvent.setup();
+    await openForm(user);
+    await user.click(screen.getByLabelText('Имя'));
+    await user.paste('Ольга Смирнова');
+    expect(screen.getByLabelText('Имя')).toHaveProperty('value', 'Ольга Смирнова');
+    expect(screen.queryByAltText('Предпросмотр подписи')).toBeNull();
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it.each([
+    ['dropped', () => fireEvent.drop(dropZone(), { dataTransfer: { files: [PDF()] } })],
+    ['pasted', () => fireEvent.paste(form(), { clipboardData: { files: [PDF()], items: [] } })],
+  ])('a %s PDF is refused with the format message', async (_how, act) => {
+    const user = userEvent.setup();
+    await openForm(user);
+    await user.type(screen.getByLabelText('Имя'), 'Ольга');
+    act();
+    expect(screen.getByRole('alert').textContent).toBe('Загружаемый файл должен быть в формате JPG или PNG.');
+    expect(screen.queryByAltText('Предпросмотр подписи')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Добавить' })).toHaveProperty('disabled', true);
+  });
+
+  it('while the form is shown a drop on the window is cancelled; not after unmount', async () => {
+    const user = userEvent.setup();
+    const view = renderPage();
+    await screen.findByText('Иван Петров');
+    await logIn(user);
+    await screen.findByText('Добавить менеджера');
+    const drop = new Event('drop', { cancelable: true });
+    window.dispatchEvent(drop);
+    expect(drop.defaultPrevented).toBe(true);
+    const over = new Event('dragover', { cancelable: true });
+    window.dispatchEvent(over);
+    expect(over.defaultPrevented).toBe(true);
+    view.unmount();
+    const later = new Event('drop', { cancelable: true });
+    window.dispatchEvent(later);
+    expect(later.defaultPrevented).toBe(false);
   });
 
   it('deletes after confirmation, with the password', async () => {

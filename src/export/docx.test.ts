@@ -240,6 +240,29 @@ describe('buildDocx', () => {
     expect(xml).toMatch(/<w:pStyle w:val="KpImage"\/><\/w:pPr><w:r><w:drawing><wp:inline /);
   });
 
+  it('hidden main photo and palette line are not in the file; an edited palette text is', async () => {
+    const xmlOf = async (kpPatch: Partial<NonNullable<Project['kp']>>) => {
+      const base = project();
+      const kp = { ...(base.kp as NonNullable<Project['kp']>), ...kpPatch };
+      const doc = buildKpDocument({ ...base, kp }, MANAGER, { now: new Date(2026, 10, 12) });
+      const buffer = await Packer.toBuffer(buildDocxDocument(doc, assets(doc, false)));
+      return strFromU8(unzipSync(new Uint8Array(buffer))['word/document.xml'] ?? new Uint8Array());
+    };
+    const plain = await xmlOf({});
+    expect(plain).toContain('Всю палитру можно посмотреть по ссылке: </w:t>');
+    expect(count(plain, /<wp:anchor /g)).toBe(1);
+
+    const hidden = await xmlOf({ mainImageHidden: true, paletteHidden: true });
+    expect(count(hidden, /<wp:anchor /g)).toBe(0);
+    expect(count(hidden, /<wp:inline /g)).toBe(5); // the articles stay
+    expect(hidden).not.toContain('Всю палитру');
+    expect(hidden).not.toContain(`>${LINK}<`);
+
+    const edited = await xmlOf({ paletteText: 'Остальные цвета на сайте:' });
+    expect(edited).toContain('Остальные цвета на сайте: </w:t>');
+    expect(edited).not.toContain('Всю палитру');
+  });
+
   it('a gelster.ru page gets its banner as the main photo floating beside the description', async () => {
     const url = 'https://gelster.ru/marmoleum_cocoa.htm';
     const html = readFileSync('shared/parsers/__fixtures__/gelster.ru/marmoleum_cocoa.htm', 'utf8');

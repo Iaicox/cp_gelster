@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { parseCollection } from '../../shared/parsers/index.ts';
+import { MISSING_MANUFACTURER_WARNING, parseCollection } from '../../shared/parsers/index.ts';
 import type { Collection, Item, Manager, Project } from '../../shared/schema.ts';
 import {
   buildFileName,
@@ -225,6 +225,39 @@ describe('buildKpDocument: content from the collection', () => {
   it('passes parser warnings through', () => {
     const p = project({}, { collection: collection({ warnings: ['Не найдено главное фото'] }) });
     expect(build(p).warnings).toContain('Не найдено главное фото');
+  });
+
+  it('drops the manufacturer warning kept in older snapshots, keeps the others', () => {
+    const warnings = [MISSING_MANUFACTURER_WARNING, 'Не найдены артикулы'];
+    const p = project({}, { collection: collection({ manufacturer: '', warnings }) });
+    expect(build(p).warnings).not.toContain(MISSING_MANUFACTURER_WARNING);
+    expect(build(p).warnings).toContain('Не найдены артикулы');
+    expect(build(project()).warnings.join(' ')).not.toContain('производитель');
+  });
+
+  it('leaves the main photo out when it is hidden', () => {
+    const shown = picked(project());
+    expect(one(build(shown).blocks, 'mainImage').src).toBe('https://ooogelingen.ru/img/main.jpg');
+    expect(createInitialKp(collection())).toMatchObject({ mainImageHidden: false, paletteText: null, paletteHidden: false });
+    const hidden = { ...shown, kp: { ...(shown.kp ?? createInitialKp(null)), mainImageHidden: true } };
+    expect(all(build(hidden).blocks, 'mainImage')).toEqual([]);
+    expect(hidden.collection?.mainImage).toBe('https://ooogelingen.ru/img/main.jpg');
+  });
+
+  it('palette line: auto text, edited text, hidden line', () => {
+    const base = picked(project());
+    expect(one(build(base).blocks, 'paletteLink')).toMatchObject({
+      text: 'Всю палитру можно посмотреть по ссылке:',
+      edited: false,
+    });
+    const kp = base.kp ?? createInitialKp(null);
+    const edited = build({ ...base, kp: { ...kp, paletteText: 'Остальные цвета:' } });
+    expect(one(edited.blocks, 'paletteLink')).toMatchObject({ text: 'Остальные цвета:', edited: true });
+
+    const hidden = build({ ...base, kp: { ...kp, paletteHidden: true } }).blocks;
+    expect(all(hidden, 'paletteLink')).toEqual([]);
+    // Without the line the last row of articles is free to end a page.
+    expect(all(hidden, 'articleRow').map((row) => row.keepWithNext)).toEqual([false, false]);
   });
 
   it('builds from the Marmoleum Cocoa fixture', () => {

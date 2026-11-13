@@ -54,13 +54,13 @@ const picked: Project = {
 const blocks = buildKpDocument(picked, null).blocks;
 const placed = (list: KpBlock[]): Placed<KpBlock>[] => list.map((block) => ({ block, repeated: false }));
 const shape = (list: Placed<KpBlock>[]) =>
-  toSegments(list).map((s) => `${s.kind === 'single' ? s.block.type : s.kind}${s.gapBefore ? '+gap' : ''}`);
+  toSegments(list).map((s) => `${s.kind === 'single' ? s.block.type : s.kind}${{ none: '', small: '+small', normal: '+gap' }[s.gapBefore]}`);
 
 describe('toSegments', () => {
   it('joins paragraphs, article rows and the parts of each table', () => {
     expect(shape(placed(blocks))).toEqual([
       'date', 'title', 'greeting', 'intro', 'collectionHeading', 'text', 'articles', 'paletteLink',
-      'features+gap', 'calcNote', 'price', 'price+gap', 'total+gap', 'comment+gap', 'comment+gap',
+      'features+gap', 'calcNote', 'price', 'price+gap', 'total+gap', 'comment+gap', 'comment+small',
     ]);
     const segments = toSegments(placed(blocks));
     const main = segments.find((s) => s.kind === 'price');
@@ -77,7 +77,17 @@ describe('toSegments', () => {
     const rows = blocks.filter((b) => b.type === 'priceRow' || b.type === 'priceFoot' || b.type === 'priceHead');
     expect(shape(placed(rows))).toEqual(['price', 'price+gap']);
     const tail = blocks.filter((b) => b.type === 'total' || b.type === 'comment');
-    expect(shape(placed(tail))).toEqual(['total', 'comment+gap', 'comment+gap']);
+    expect(shape(placed(tail))).toEqual(['total', 'comment+gap', 'comment+small']);
+  });
+
+  it('puts 19px only before the first comment and 5px between neighbouring comments', () => {
+    const comments = blocks.filter((b) => b.type === 'comment');
+    const total = blocks.find((b) => b.type === 'total');
+    if (!total || comments.length !== 2) throw new Error('fixture');
+    const three = [...comments, { ...comments[0], id: 'comment-2', index: 2 } as KpBlock];
+    expect(toSegments(placed([total, ...three])).map((s) => s.gapBefore)).toEqual(['none', 'normal', 'small', 'small']);
+    // Comments carried over to a new page: the first one on the page has no gap at all.
+    expect(toSegments(placed(three)).map((s) => s.gapBefore)).toEqual(['none', 'small', 'small']);
   });
 
   it('gives a repeated head its own key', () => {

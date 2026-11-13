@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { CollectionSchema, type Collection } from '../schema.ts';
-import { NotACollectionError, parseCollection, siteOf } from './index.ts';
+import { MISSING_MANUFACTURER_WARNING, NotACollectionError, parseCollection, siteOf } from './index.ts';
 
 const FIXTURES = 'shared/parsers/__fixtures__/'; // vitest runs from the repository root
 
@@ -54,7 +54,7 @@ const CASES: Expected[] = [
     codes: ['1091', '1083', '1084', '1063', '1064'],
     featureRows: 2,
     mainImage: 'https://ooogelingen.ru/style/collection/plintus_dollken/foto1_Dollken_DSL.jpg',
-    warnings: ['Не найден производитель: заголовок КП составлен без него'],
+    warnings: [],
   },
   {
     file: 'ooogelingen.ru/glue_marm.htm',
@@ -66,7 +66,6 @@ const CASES: Expected[] = [
     featureRows: 0,
     mainImage: 'https://ooogelingen.ru/style/collection/glue/foto1_nat_linol.jpg',
     warnings: [
-      'Не найден производитель: заголовок КП составлен без него',
       'Не найдены артикулы',
       'Не найдены технические характеристики',
     ],
@@ -80,7 +79,7 @@ const CASES: Expected[] = [
     codes: ['3584', '3580', '3581', '3582', '3583'],
     featureRows: 15,
     mainImage: 'https://gelster.ru/img/collections/marmoleum/m_cocoa/catalog-in-new_03.jpg',
-    warnings: ['Не найден производитель: заголовок КП составлен без него'],
+    warnings: [],
   },
   {
     file: 'gelster.ru/coral-class.htm',
@@ -91,7 +90,7 @@ const CASES: Expected[] = [
     codes: '4701 4721 4727 4730 4744 4750 4752 4754 4756 4751 4764 4766 4759 4758 4774 4753'.split(' '),
     featureRows: 15,
     mainImage: 'https://gelster.ru/img/collections/entrance-flooring/forbo-entrance-flooring/coral-classic/images/catalog-in-kovrolin_03.jpg',
-    warnings: ['Не найден производитель: заголовок КП составлен без него'],
+    warnings: [],
   },
   {
     file: 'gelster.ru/dollken_al.htm',
@@ -102,7 +101,7 @@ const CASES: Expected[] = [
     codes: ['0110'],
     featureRows: 2,
     mainImage: 'https://gelster.ru/img/Katalog/Dollken-plintus/Al403/catalog-in-DOLLKEN_03.jpg',
-    warnings: ['Не найден производитель: заголовок КП составлен без него'],
+    warnings: [],
   },
 ];
 
@@ -255,12 +254,13 @@ describe('parseCollection: details', () => {
     expect(collection.mainImage).toBeNull();
     expect(collection.warnings).toEqual([
       'Не найден вид покрытия: заголовок КП составлен без него',
-      'Не найден производитель: заголовок КП составлен без него',
       'Не найдено описание коллекции',
       'Не найдено главное фото',
       'Не найдены артикулы',
       'Не найдены технические характеристики',
     ]);
+    // No manufacturer is not reported any more (docs/spec.md, section 8.1).
+    expect(collection.warnings).not.toContain(MISSING_MANUFACTURER_WARNING);
   });
 
   it('throws only when there is no name, no articles and no description', () => {

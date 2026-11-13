@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, type ClipboardEvent, type DragEvent, type FormEvent } from 'react';
 import { Link } from 'react-router';
 import type { Manager } from '../../shared/schema.ts';
 import { addManager, ApiError, canManageManagers, deleteManager, listManagers, login } from '../api/client.ts';
@@ -24,6 +24,36 @@ export function managersErrorText(error: unknown): string {
 }
 
 const ACCEPTED = ['image/jpeg', 'image/png'];
+export const WRONG_FORMAT = 'Загружаемый файл должен быть в формате JPG или PNG.';
+
+/** The first file of a paste: clipboardData.files, else the first item of kind "file"; null when there is none. */
+function pastedFile(data: DataTransfer | null): File | null {
+  if (!data) return null;
+  const direct = data.files?.[0];
+  if (direct) return direct;
+  for (const item of Array.from(data.items ?? [])) {
+    if (item.kind === 'file') return item.getAsFile();
+  }
+  return null;
+}
+
+/** A clipboard image may come without a name: the server and the preview need one. */
+function named(file: File): File {
+  return file.name ? file : new File([file], 'signature.png', { type: file.type, lastModified: file.lastModified });
+}
+
+/** While the form is shown, a drop that misses the drop area must not make the browser open the file. */
+function useBlockWindowDrop() {
+  useEffect(() => {
+    const block = (event: Event) => event.preventDefault();
+    window.addEventListener('dragover', block);
+    window.addEventListener('drop', block);
+    return () => {
+      window.removeEventListener('dragover', block);
+      window.removeEventListener('drop', block);
+    };
+  }, []);
+}
 
 export function ManagersPage() {
   const manageable = canManageManagers();
@@ -141,13 +171,15 @@ function LoginForm({ busy, onLogin }: { busy: boolean; onLogin: (password: strin
   return (
     <form className="login-form" onSubmit={submit}>
       <p>Чтобы изменить список, введите пароль администратора.</p>
-      <label>
-        Пароль{' '}
+      <label className="field">
+        <span>Пароль</span>
         <input type="password" autoComplete="current-password" value={value} onChange={(e) => setValue(e.target.value)} />
-      </label>{' '}
-      <button type="submit" disabled={busy || value === ''}>
-        Войти
-      </button>
+      </label>
+      <p className="form-actions">
+        <button type="submit" disabled={busy || value === ''}>
+          Войти
+        </button>
+      </p>
     </form>
   );
 }
@@ -158,6 +190,8 @@ function AddManagerForm({ busy, onAdd }: { busy: boolean; onAdd: (name: string, 
   const [preview, setPreview] = useState<string | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [inputKey, setInputKey] = useState(0);
+  const [dragOver, setDragOver] = useState(false);
+  useBlockWindowDrop();
 
   // Releases the previous preview URL when it is replaced and on leaving the page.
   useEffect(() => () => {
@@ -167,9 +201,35 @@ function AddManagerForm({ busy, onAdd }: { busy: boolean; onAdd: (name: string, 
   function pick(next: File | undefined) {
     setFileError(null);
     const ok = next !== undefined && ACCEPTED.includes(next.type);
-    if (next && !ok) setFileError('Подпись — картинка JPG или PNG.');
+    if (next && !ok) setFileError(WRONG_FORMAT);
     setFile(ok ? next : null);
     setPreview(ok ? URL.createObjectURL(next) : null);
+  }
+
+  /** Drop and paste bypass the file input: clear it so it does not show an older choice. */
+  function pickOutside(next: File) {
+    setInputKey((k) => k + 1);
+    pick(named(next));
+  }
+
+  function onDragOver(event: DragEvent) {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy';
+    setDragOver(true);
+  }
+
+  function onDrop(event: DragEvent) {
+    event.preventDefault();
+    setDragOver(false);
+    const dropped = event.dataTransfer.files?.[0];
+    if (dropped) pickOutside(dropped);
+  }
+
+  function onPaste(event: ClipboardEvent) {
+    const pasted = pastedFile(event.clipboardData);
+    if (!pasted) return; // plain text: let it reach the name field as usual
+    event.preventDefault();
+    pickOutside(pasted);
   }
 
   async function submit(event: FormEvent) {
@@ -185,7 +245,7 @@ function AddManagerForm({ busy, onAdd }: { busy: boolean; onAdd: (name: string, 
   }
 
   return (
-    <form className="add-manager" onSubmit={(e) => void submit(e)}>
+    <form className="add-manager" onSubmit={(e) => void submit(e)} onPaste={onPaste}>
       <h2>Добавить менеджера</h2>
       <label className="field">
         <span>Имя</span>
@@ -200,13 +260,22 @@ function AddManagerForm({ busy, onAdd }: { busy: boolean; onAdd: (name: string, 
           onChange={(e) => pick(e.target.files?.[0])}
         />
       </label>
+      <div
+        className={dragOver ? 'drop-zone drag-over' : 'drop-zone'}
+        data-testid="signature-drop"
+        onDragOver={onDragOver}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={onDrop}
+      >
+        Перетащите картинку сюда или вставьте из буфера (Ctrl+V)
+      </div>
       {fileError && (
         <p className="hint error" role="alert">
           {fileError}
         </p>
       )}
       {preview && <img src={preview} alt="Предпросмотр подписи" className="signature-preview" />}
-      <p>
+      <p className="form-actions">
         <button type="submit" disabled={busy || name.trim() === '' || file === null}>
           Добавить
         </button>

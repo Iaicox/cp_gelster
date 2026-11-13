@@ -1,6 +1,7 @@
 import 'fake-indexeddb/auto';
+import { createStore, set } from 'idb-keyval';
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { Project } from '../../shared/schema.ts';
+import type { KpEdits, Project } from '../../shared/schema.ts';
 import {
   applyImport,
   exportAllProjects,
@@ -66,8 +67,21 @@ function withImages(client: string): Project {
       featuresTitle: 'Характеристики',
       features: [],
       comments: [],
+      mainImageHidden: false,
+      paletteText: null,
+      paletteHidden: false,
     },
   });
+}
+
+/** A project as it was stored before the fields of docs/spec.md, section 8.1 existed. */
+function withoutNewKpFields(project: Project): unknown {
+  if (!project.kp) throw new Error('fixture');
+  const kp: Partial<KpEdits> = { ...project.kp };
+  delete kp.mainImageHidden;
+  delete kp.paletteText;
+  delete kp.paletteHidden;
+  return { ...project, kp };
 }
 
 beforeEach(async () => {
@@ -106,6 +120,31 @@ describe('projects store', () => {
     expect(migrateProject({ ...makeProject('x'), version: 2 })).toBeNull();
     expect(migrateProject({ id: 'x' })).toBeNull();
     expect(migrateProject(null)).toBeNull();
+  });
+});
+
+describe('records saved before the palette and photo flags', () => {
+  it('a stored project without the new kp fields opens with their defaults and saves again', async () => {
+    const old = withImages('Старый');
+    await set(old.id, withoutNewKpFields(old), createStore('gelster-kp-projects', 'projects'));
+    const read = await getProject(old.id);
+    expect(read?.kp).toMatchObject({ mainImageHidden: false, paletteText: null, paletteHidden: false });
+    expect(read).toEqual(old);
+    if (read) await saveProject(read);
+    expect(await getProject(old.id)).toEqual(old);
+  });
+
+  it('an old export file without the new kp fields is imported', () => {
+    const old = withImages('Старый');
+    const text = JSON.stringify({
+      format: 'gelster-kp',
+      version: 1,
+      exportedAt: '2026-11-01T00:00:00.000Z',
+      projects: [withoutNewKpFields(old)],
+      images: {},
+    });
+    const parsed = parseExportFile(text);
+    expect(parsed.file.projects).toEqual([old]);
   });
 });
 

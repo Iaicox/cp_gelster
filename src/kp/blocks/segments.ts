@@ -14,10 +14,15 @@ export type Segment =
   | { kind: 'features'; head: Of<'featuresHead'> | null; rows: Of<'featureRow'>[] }
   | { kind: 'price'; head: Of<'priceHead'> | null; rows: Of<'priceRow'>[]; foot: Of<'priceFoot'> | null };
 
+export type Gap = 'none' | 'small' | 'normal';
+
 export type PageSegment = Segment & {
   key: string;
-  /** A 19px gap above, as the `.br` spacers of the legacy page. */
-  gapBefore: boolean;
+  /**
+   * Gap above: 'normal' is 19px, as the `.br` spacers of the legacy page; 'small' is 5px, between neighbouring
+   * comments (`.comment-text` of the legacy page).
+   */
+  gapBefore: Gap;
 };
 
 function kindOf(block: KpBlock): Segment['kind'] {
@@ -39,11 +44,15 @@ function kindOf(block: KpBlock): Segment['kind'] {
 }
 
 /** Which segments are separated from the previous one by a gap (never the first on a page, never after the note). */
-function wantsGap(segment: Segment, previous: Segment | undefined): boolean {
-  if (!previous) return false;
-  if (previous.kind === 'single' && previous.block.type === 'calcNote') return false;
-  if (segment.kind === 'features' || segment.kind === 'price') return true;
-  return segment.kind === 'single' && (segment.block.type === 'total' || segment.block.type === 'comment');
+function gapOf(segment: Segment, previous: Segment | undefined): Gap {
+  if (!previous) return 'none';
+  if (previous.kind === 'single' && previous.block.type === 'calcNote') return 'none';
+  if (segment.kind === 'features' || segment.kind === 'price') return 'normal';
+  if (segment.kind !== 'single') return 'none';
+  if (segment.block.type === 'comment') {
+    return previous.kind === 'single' && previous.block.type === 'comment' ? 'small' : 'normal';
+  }
+  return segment.block.type === 'total' ? 'normal' : 'none';
 }
 
 export function toSegments(items: readonly Placed<KpBlock>[]): PageSegment[] {
@@ -70,7 +79,7 @@ export function toSegments(items: readonly Placed<KpBlock>[]): PageSegment[] {
       else if (block.type === 'priceRow') segment = { kind: 'price', head: null, rows: [block], foot: null };
       else if (block.type === 'priceFoot') segment = { kind: 'price', head: null, rows: [], foot: block };
       else segment = { kind: 'single', block };
-      segments.push({ ...segment, key: block.id + (repeated ? '-repeat' : ''), gapBefore: wantsGap(segment, last) });
+      segments.push({ ...segment, key: block.id + (repeated ? '-repeat' : ''), gapBefore: gapOf(segment, last) });
     }
     groupOfLast = block.group;
   }

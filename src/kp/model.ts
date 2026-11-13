@@ -4,10 +4,12 @@
  */
 import { calcForm, formatMoney, isValidRate, type CalcTable } from '../../shared/calc.ts';
 import { buildKpTitle } from '../../shared/declension.ts';
+import { MISSING_MANUFACTURER_WARNING } from '../../shared/parsers/index.ts';
 import type { Collection, FeatureCell, KpEdits, Manager, Project } from '../../shared/schema.ts';
 
 export const ARTICLES_PER_ROW = 4;
 export const DEFAULT_DELIVERY_COMMENT = 'Доставка до объекта рассчитывается отдельно.';
+export const DEFAULT_PALETTE_TEXT = 'Всю палитру можно посмотреть по ссылке:';
 
 export type PriceTableId = 'main' | 'extra';
 export type ParagraphList = 'none' | 'bullet' | 'number';
@@ -47,7 +49,8 @@ export type KpBlock = BlockBase &
         /** Index of the row's first article in kp.selectedArticles. */
         first: number;
       }
-    | { type: 'paletteLink'; url: string }
+    /** `text` goes before the address; `edited`: the manager has changed it. */
+    | { type: 'paletteLink'; text: string; url: string; edited: boolean }
     | { type: 'featuresHead'; title: string; /** Width of the table in columns (the head spans them all). */ columns: number }
     | { type: 'featureRow'; cells: FeatureCell[]; /** Index in kp.features. */ row: number }
     | { type: 'calcNote'; text: string }
@@ -149,6 +152,9 @@ export function createInitialKp(collection: Collection | null): KpEdits {
     featuresTitle: `Технические характеристики${name === '' ? '' : ` ${name}`}:`,
     features: collection?.features ?? [],
     comments: [],
+    mainImageHidden: false,
+    paletteText: null,
+    paletteHidden: false,
   };
 }
 
@@ -336,7 +342,8 @@ export function buildKpDocument(project: Project, manager: Manager | null, optio
   const now = options.now ?? new Date();
   const { form, collection } = project;
   const kp = project.kp ?? createInitialKp(collection);
-  const warnings: string[] = [...(collection?.warnings ?? [])];
+  // Older snapshots still carry the dropped manufacturer warning (docs/spec.md, section 8.1).
+  const warnings: string[] = (collection?.warnings ?? []).filter((text) => text !== MISSING_MANUFACTURER_WARNING);
   const blocks: KpBlock[] = [];
   const plain = { keepWithNext: false, repeatOnBreak: false };
   const heading = { keepWithNext: true, repeatOnBreak: false };
@@ -370,7 +377,7 @@ export function buildKpDocument(project: Project, manager: Manager | null, optio
       ...heading,
     });
   }
-  if (collection?.mainImage) {
+  if (collection?.mainImage && !kp.mainImageHidden) {
     // The photo floats beside the text that follows it, so it never ends a page.
     blocks.push({ id: 'mainImage', type: 'mainImage', src: collection.mainImage, ...heading });
   }
@@ -383,11 +390,18 @@ export function buildKpDocument(project: Project, manager: Manager | null, optio
     blocks.push({ id: `articles-${index}`, type: 'articleRow', articles, first: index * ARTICLES_PER_ROW, ...plain });
   });
   const paletteUrl = form.link.trim() || collection?.sourceUrl || '';
-  if (paletteUrl !== '') {
+  if (paletteUrl !== '' && !kp.paletteHidden) {
     const last = blocks[blocks.length - 1];
     // The link is a caption of the palette: it stays under the last row of articles.
     if (last?.type === 'articleRow') last.keepWithNext = true;
-    blocks.push({ id: 'paletteLink', type: 'paletteLink', url: paletteUrl, ...plain });
+    blocks.push({
+      id: 'paletteLink',
+      type: 'paletteLink',
+      text: kp.paletteText ?? DEFAULT_PALETTE_TEXT,
+      url: paletteUrl,
+      edited: kp.paletteText !== null,
+      ...plain,
+    });
   }
 
   blocks.push(...featureBlocks(kp.featuresTitle, kp.features));

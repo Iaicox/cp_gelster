@@ -214,6 +214,7 @@ describe.skipIf(!hasPhp)('PHP API (php -S)', () => {
     fd.append('signature', php, 'shell.jpg');
     const notImage = await fetch(`${base}/api/managers.php`, { method: 'POST', body: fd });
     expect(notImage.status).toBe(400);
+    expect(await notImage.json()).toEqual({ error: 'Загружаемый файл должен быть в формате JPG или PNG.' });
     const badName = await post(base, { action: 'add', password: TEST_PASSWORD, name: '   ', signature: jpeg });
     expect(badName.status).toBe(400);
     const unknown = await post(base, { action: 'drop', password: TEST_PASSWORD });
