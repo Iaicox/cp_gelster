@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Генератор КП Gelster: что улучшить и добавить</title>
+<style>
+:root {
+  --bg: #f4f5f7; --surface: #ffffff; --fg: #16191f; --muted: #5a6170; --line: #dde1e7;
+  --accent: #2c4ad0; --accent-soft: #e7ebfb;
+  --ok: #1f7a4d; --ok-soft: #e2f2e9; --bad: #b0372d; --bad-soft: #f7e4e1; --mark: #e5372a;
+  --font: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg: #111318; --surface: #1a1d24; --fg: #e8eaef; --muted: #9aa1ae; --line: #2c313b;
+  --accent: #90a3ff; --accent-soft: #232a49; --ok: #5cc88f; --ok-soft: #17301f; --bad: #f08a7e; --bad-soft: #3a1d1a;
+  color-scheme: dark; } }
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 var(--font); }
+.wrap { max-width: 780px; margin: 0 auto; padding: 0 16px 72px; }
+h1, h2, h3 { margin: 0; line-height: 1.25; text-wrap: balance; }
+h1 { font-size: 28px; font-weight: 600; }
+h2 { font-size: 20px; font-weight: 600; }
+h3 { font-size: 18px; font-weight: 600; }
+p { margin: 0; }
+.label { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 500; }
+
+header { display: grid; gap: 14px; padding-top: 32px; }
+.ver { font-size: 13px; color: var(--muted); }
+.ask { background: var(--accent-soft); border-radius: 10px; padding: 14px 16px; display: grid; gap: 4px; }
+.ask .label { color: var(--accent); }
+section { display: grid; gap: 14px; padding-top: 36px; }
+ul.plain, ol.plain { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+
+.item { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: grid; gap: 12px; }
+.ihead { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: baseline; }
+.num { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.rec b { font-weight: 600; }
+.question { font-weight: 500; }
+.cost { font-size: 14px; color: var(--muted); }
+
+.tp { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.tp > div { border-radius: 10px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.tp .now { background: var(--bg); }
+.tp .next { background: var(--accent-soft); }
+.tp .next .label { color: var(--accent); }
+.tp ol, .tp ul { margin: 0; padding-left: 20px; }
+
+figure { margin: 0; display: grid; gap: 5px; align-content: start; min-width: 0; }
+figure svg { width: 100%; height: auto; display: block; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+figcaption { font-size: 13px; color: var(--muted); line-height: 1.35; }
+svg text { font-family: var(--font); fill: var(--fg); }
+svg .m { fill: var(--muted); }
+svg .a { fill: var(--accent); }
+svg .box { fill: none; stroke: var(--line); }
+svg .fillbg { fill: var(--bg); stroke: var(--line); }
+svg .new { fill: var(--accent-soft); stroke: var(--accent); }
+svg .ln { stroke: var(--line); }
+
+.answer { display: grid; gap: 6px; }
+textarea { width: 100%; min-height: 46px; resize: vertical; font: 15px/1.45 var(--font); color: var(--fg); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; }
+textarea:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.astate { font-size: 12px; color: var(--muted); min-height: 1em; }
+.astate.err { color: var(--bad); }
+
+.donebox { display: grid; gap: 8px; justify-items: start; }
+#done-btn { font: 500 16px var(--font); border: 0; background: var(--accent); color: var(--bg); padding: 11px 18px; border-radius: 8px; cursor: pointer; }
+details.box { border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; background: var(--surface); }
+details.box summary { cursor: pointer; font-weight: 500; }
+details.box > :not(summary) { margin-top: 10px; }
+
+@media (max-width: 640px) { .tp { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main class="wrap">
+
+<header>
+  <p class="ver">Версия 1 · 14.11.2026 · карточка 7d44eec9</p>
+  <h1>Генератор КП: что улучшить и что добавить</h1>
+  <p>Я прошёл по форме, странице КП, окну артикулов, списку проектов и странице менеджеров так, как идёт менеджер,
+    и выписал, где он теряет время, где может потерять работу и чего в КП не хватает. Ниже шесть групп предложений,
+    от дешёвых к дорогим. В каждой — что сейчас, что будет и моя рекомендация.</p>
+  <div class="ask">
+    <span class="label">Что нужно от вас</span>
+    <p>По каждой группе: делать целиком, частично (напишите, что убрать или добавить) или не делать. Вопросы
+      сформулированы так, что «да» = согласие с рекомендацией. Моя общая рекомендация: группы 1–4 и 6 сделать сейчас
+      (примерно 6–7 карточек), группу 5 (несколько коллекций в одном КП) отложить до ответа на вопрос в ней.
+      Пустое поле = не отвечено. После ответов я запишу решения, обновлю спецификацию и нарежу карточки.</p>
+  </div>
+</header>
+
+<section>
+
+  <article class="item">
+    <div class="ihead"><span class="num">1</span><h3>Форма и проекты: суммы сразу, копия проекта, понятный список</h3></div>
+
+    <figure>
+      <svg viewBox="0 0 740 250" role="img" aria-label="Макет формы после изменений">
+        <text x="14" y="22" font-size="13" font-weight="600">Проекты</text>
+        <rect class="fillbg" x="14" y="32" width="230" height="46" rx="6"/>
+        <text x="24" y="50" font-size="12" font-weight="600">Ромашка — Marmoleum Cocoa</text>
+        <text class="m" x="24" y="68" font-size="11">12.11.26 · 35 000 ₽ · Смущенко</text>
+        <rect class="new" x="14" y="84" width="230" height="46" rx="6"/>
+        <text x="24" y="102" font-size="12" font-weight="600">Ромашка — Coral Classic</text>
+        <text class="m" x="24" y="120" font-size="11">14.11.26 · 128 400 ₽ · Смущенко</text>
+        <rect class="box" x="14" y="140" width="108" height="26" rx="5"/><text x="26" y="157" font-size="11">Новый проект</text>
+        <rect class="new" x="128" y="140" width="116" height="26" rx="5"/><text class="a" x="138" y="157" font-size="11">Создать копию</text>
+        <text class="m" x="14" y="190" font-size="11">Сейчас в списке только «Ромашка», «Ромашка»:</text>
+        <text class="m" x="14" y="205" font-size="11">два КП одной компании не различить.</text>
+
+        <text x="280" y="22" font-size="13" font-weight="600">Основные материалы</text>
+        <text class="m" x="280" y="46" font-size="11">Наименование</text><text class="m" x="456" y="46" font-size="11">Кол-во</text>
+        <text class="m" x="516" y="46" font-size="11">Ед.</text><text class="m" x="566" y="46" font-size="11">Цена, ₽</text>
+        <text class="a" x="648" y="46" font-size="11" font-weight="600">Сумма, ₽</text>
+        <rect class="box" x="280" y="54" width="166" height="26" rx="4"/><text x="288" y="71" font-size="12">Marmoleum Cocoa 3580</text>
+        <rect class="box" x="452" y="54" width="54" height="26" rx="4"/><text x="460" y="71" font-size="12">150</text>
+        <rect class="box" x="512" y="54" width="44" height="26" rx="4"/><text x="520" y="71" font-size="12">м²</text>
+        <rect class="box" x="562" y="54" width="74" height="26" rx="4"/><text x="570" y="71" font-size="12">2 450</text>
+        <rect class="new" x="642" y="54" width="86" height="26" rx="4"/><text x="650" y="71" font-size="12">367 500,00</text>
+        <rect class="box" x="280" y="86" width="166" height="26" rx="4"/><text x="288" y="103" font-size="12">Клей Forbo 418</text>
+        <rect class="box" x="452" y="86" width="54" height="26" rx="4"/><text x="460" y="103" font-size="12">4</text>
+        <rect class="box" x="512" y="86" width="44" height="26" rx="4"/><text x="520" y="103" font-size="12">шт.</text>
+        <rect class="box" x="562" y="86" width="74" height="26" rx="4"/><text x="570" y="103" font-size="12">6 900</text>
+        <rect class="new" x="642" y="86" width="86" height="26" rx="4"/><text x="650" y="103" font-size="12">27 600,00</text>
+        <text class="a" x="562" y="136" font-size="12" font-weight="600">Итого:</text><text class="a" x="650" y="136" font-size="12" font-weight="600">395 100,00</text>
+        <line class="ln" x1="280" y1="150" x2="728" y2="150"/>
+        <text class="a" x="280" y="174" font-size="12" font-weight="600">Общая сумма: 395 100,00 ₽ (4 021,37 €)</text>
+        <text class="m" x="280" y="198" font-size="11">Сейчас суммы видны только после «Создать КП»: чтобы проверить цифру,</text>
+        <text class="m" x="280" y="213" font-size="11">нужно уйти на страницу КП и вернуться.</text>
+        <text class="m" x="280" y="236" font-size="11">Синим выделено новое.</text>
+      </svg>
+      <figcaption>Форма: сумма строки, итог таблицы и общая сумма считаются на месте; в списке проектов — коллекция, дата, сумма, менеджер; кнопка «Создать копию».</figcaption>
+    </figure>
+
+    <div class="tp">
+      <div class="now"><span class="label">Сейчас</span>
+        <ul>
+          <li>Суммы и итог видны только на странице КП.</li>
+          <li>Проекта «на основе прошлого» нет: новое КП тому же клиенту или то же КП другому клиенту набирается заново.</li>
+          <li>В списке проектов только название компании.</li>
+          <li>Строки материалов нельзя поменять местами; таблицу из Excel нельзя вставить.</li>
+          <li>Менеджера нельзя исправить: только удалить и добавить заново (имя, новая подпись).</li>
+          <li>Не видно, сохранилась ли правка.</li>
+        </ul></div>
+      <div class="next"><span class="label">После</span>
+        <ul>
+          <li>Сумма строки, итог каждой таблицы и общая сумма — прямо в форме.</li>
+          <li>«Создать копию»: новый проект со всеми полями, строками и правками КП; дата — сегодняшняя.</li>
+          <li>В списке: компания, коллекция, дата, сумма, менеджер; поиск ищет и по коллекции.</li>
+          <li>Строки двигаются вверх и вниз; вставка нескольких строк из Excel (наименование, количество, цена) раскладывается по строкам.</li>
+          <li>На странице «Менеджеры» — «Изменить»: имя и замена подписи.</li>
+          <li>Рядом с заголовком формы — «Сохранено».</li>
+        </ul></div>
+    </div>
+    <p class="cost">Объём: 2 карточки. Данные не меняются, риска почти нет.</p>
+    <p class="rec"><b>Рекомендую сделать всё.</b> Это самые дешёвые правки, и они экономят время на каждом КП.</p>
+    <p class="question">Делаем группу 1 целиком? (Если что-то лишнее — назовите.)</p>
+    <div class="answer" data-id="g1-form-projects"></div>
+  </article>
+
+  <article class="item">
+    <div class="ihead"><span class="num">2</span><h3>Страница КП: отмена действия, свои абзацы, порядок артикулов, дата</h3></div>
+
+    <figure>
+      <svg viewBox="0 0 740 190" role="img" aria-label="Макет панели и листа КП">
+        <rect class="fillbg" x="0" y="0" width="740" height="40"/>
+        <rect class="box" x="12" y="8" width="70" height="24" rx="5"/><text x="22" y="24" font-size="11">К форме</text>
+        <rect class="new" x="90" y="8" width="84" height="24" rx="5"/><text class="a" x="100" y="24" font-size="11">↶ Отменить</text>
+        <rect class="new" x="182" y="8" width="84" height="24" rx="5"/><text class="a" x="192" y="24" font-size="11">↷ Вернуть</text>
+        <rect class="box" x="274" y="8" width="72" height="24" rx="5"/><text x="284" y="24" font-size="11">Артикулы</text>
+        <text class="a" x="470" y="24" font-size="11" font-weight="600">3 листа</text>
+        <rect class="box" x="530" y="8" width="96" height="24" rx="5"/><text x="540" y="24" font-size="11">Сохранить PDF</text>
+        <rect class="box" x="634" y="8" width="96" height="24" rx="5"/><text x="644" y="24" font-size="11">Сохранить DOCX</text>
+
+        <rect class="box" x="40" y="56" width="120" height="96" rx="3"/><text class="m" x="72" y="108" font-size="11">Арт. 3580</text>
+        <rect class="new" x="140" y="50" width="26" height="18" rx="4"/><text class="a" x="149" y="63" font-size="12">×</text>
+        <rect class="new" x="40" y="156" width="56" height="18" rx="4"/><text class="a" x="48" y="169" font-size="11">← →</text>
+        <rect class="box" x="170" y="56" width="120" height="96" rx="3"/><text class="m" x="202" y="108" font-size="11">Арт. 3581</text>
+        <rect class="box" x="300" y="56" width="120" height="96" rx="3"/><text class="m" x="332" y="108" font-size="11">Арт. 3583</text>
+
+        <text x="450" y="74" font-size="12">— Доставка рассчитывается отдельно.</text>
+        <text x="450" y="94" font-size="12">— Срок поставки 3–4 недели.</text>
+        <rect class="new" x="450" y="106" width="150" height="22" rx="5"/><text class="a" x="460" y="121" font-size="11">+ абзац / комментарий</text>
+        <text class="m" x="450" y="150" font-size="11">Сейчас: удалённый абзац или строку характеристик</text>
+        <text class="m" x="450" y="165" font-size="11">вернуть нельзя — только «Обновить с сайта»,</text>
+        <text class="m" x="450" y="180" font-size="11">а оно стирает все правки описания.</text>
+      </svg>
+      <figcaption>Страница КП: «Отменить / Вернуть», «×» и перестановка у артикула, добавление своего абзаца и комментария, счётчик листов.</figcaption>
+    </figure>
+
+    <div class="tp">
+      <div class="now"><span class="label">Сейчас</span>
+        <ul>
+          <li>Случайно удалённый абзац или строку характеристик не вернуть.</li>
+          <li>Один артикул убрать нельзя — только «Перевыбрать» весь набор; порядок — как на сайте.</li>
+          <li>Свой абзац в описание, строку в характеристики и комментарий под таблицами на странице КП добавить нельзя (комментарий — только в форме).</li>
+          <li>В окне артикулов нет поиска по номеру и счётчика выбранных; в коллекции бывает 50–100 артикулов.</li>
+          <li>Дата КП каждый раз «сегодня»: открыли проект через неделю — дата и имя файла другие, чем в отправленном клиенту PDF.</li>
+        </ul></div>
+      <div class="next"><span class="label">После</span>
+        <ul>
+          <li>«Отменить» и «Вернуть» (и Ctrl+Z) для любых правок на странице, пока она открыта.</li>
+          <li>У артикула при наведении — «×» и стрелки перестановки.</li>
+          <li>Кнопки «+ абзац», «+ строка характеристик», «+ комментарий».</li>
+          <li>В окне артикулов — поиск по номеру, «выбрано N», выбранные показываются первыми по кнопке.</li>
+          <li>Дата фиксируется при первом сохранении в PDF или DOCX; рядом кнопка «поставить сегодня». Имя файла берёт ту же дату.</li>
+          <li>В панели — число листов.</li>
+        </ul></div>
+    </div>
+    <p class="cost">Объём: 2 карточки. В проект добавляются необязательные поля, старые проекты читаются как раньше.</p>
+    <p class="rec"><b>Рекомендую сделать всё.</b> Отмена действия — главное: сейчас одна ошибка мышью стоит перенабора текста.
+      Про дату — это изменение привычного поведения, скажите, если дата должна и дальше всегда быть сегодняшней.</p>
+    <p class="question">Делаем группу 2 целиком, включая фиксацию даты?</p>
+    <div class="answer" data-id="g2-kp-page"></div>
+  </article>
+
+  <article class="item">
+    <div class="ihead"><span class="num">3</span><h3>Расчёты: скидка, НДС отдельной строкой, новые единицы</h3></div>
+
+    <figure>
+      <svg viewBox="0 0 740 170" role="img" aria-label="Таблица расчёта со скидкой и НДС">
+        <rect class="fillbg" x="10" y="10" width="720" height="26"/>
+        <text x="18" y="27" font-size="11" font-weight="600">№</text><text x="50" y="27" font-size="11" font-weight="600">Основные материалы</text>
+        <text x="330" y="27" font-size="11" font-weight="600">Кол-во</text><text x="390" y="27" font-size="11" font-weight="600">Ед.</text>
+        <text x="440" y="27" font-size="11" font-weight="600">Цена, руб.</text>
+        <text class="a" x="530" y="27" font-size="11" font-weight="600">Скидка</text>
+        <text x="610" y="27" font-size="11" font-weight="600">Сумма, руб. с НДС</text>
+        <rect class="box" x="10" y="36" width="720" height="26"/>
+        <text x="18" y="53" font-size="12">1.</text><text x="50" y="53" font-size="12">Marmoleum Cocoa 3580</text><text x="330" y="53" font-size="12">150,00</text>
+        <text x="390" y="53" font-size="12">м²</text><text x="440" y="53" font-size="12">2 450,00</text><text class="a" x="530" y="53" font-size="12">5 %</text><text x="610" y="53" font-size="12">349 125,00</text>
+        <rect class="box" x="10" y="62" width="720" height="26"/>
+        <text x="18" y="79" font-size="12">2.</text><text x="50" y="79" font-size="12">Клей Forbo 418</text><text x="330" y="79" font-size="12">4,00</text>
+        <text x="390" y="79" font-size="12">шт.</text><text x="440" y="79" font-size="12">6 900,00</text><text class="m" x="530" y="79" font-size="12">—</text><text x="610" y="79" font-size="12">27 600,00</text>
+        <text x="470" y="108" font-size="12" font-weight="600">Итого в руб., с НДС:</text><text x="610" y="108" font-size="12" font-weight="600">376 725,00</text>
+        <text class="a" x="470" y="130" font-size="12">В том числе НДС 22 %:</text><text class="a" x="610" y="130" font-size="12">67 934,02</text>
+        <text class="m" x="10" y="130" font-size="11">Столбец «Скидка» появляется, только если</text>
+        <text class="m" x="10" y="145" font-size="11">скидка задана хотя бы у одной строки.</text>
+        <text class="m" x="10" y="160" font-size="11">Строка НДС включается флажком в форме.</text>
+      </svg>
+      <figcaption>Как будет выглядеть таблица в КП. Без скидок и без флажка НДС она остаётся такой, как сейчас.</figcaption>
+    </figure>
+
+    <div class="tp">
+      <div class="now"><span class="label">Сейчас</span>
+        <ul>
+          <li>Скидки нет: менеджер считает цену со скидкой на калькуляторе и вводит готовую, клиент скидку не видит.</li>
+          <li>В заголовках написано «с НДС», сумма НДС не показана.</li>
+          <li>Единицы: шт., м², пог.м. Укладка, доставка, рулоны, упаковки идут как «шт.».</li>
+          <li>Цена только в рублях.</li>
+        </ul></div>
+      <div class="next"><span class="label">После</span>
+        <ul>
+          <li>В строке формы — необязательное поле «Скидка, %». В КП столбец «Скидка» и сумма со скидкой.</li>
+          <li>Флажок «Показать НДС»: под общей суммой строка «В том числе НДС 22 %». Ставка — в настройке приложения, меняется без переделки.</li>
+          <li>Единицы добавляются: рул., упак., компл., усл.</li>
+          <li>Цена в евро с пересчётом в рубли — не делаем: курс меняется, а КП в рублях.</li>
+        </ul></div>
+    </div>
+    <p class="cost">Объём: 1 карточка (форма, расчёт, предпросмотр, DOCX). 11.11 вы решили не добавлять скидку, НДС и «рул.» в первую версию — спрашиваю заново, потому что первая версия принята.</p>
+    <p class="rec"><b>Рекомендую:</b> скидку на позицию и новые единицы — сделать; строку НДС — сделать флажком, по умолчанию выключена; цену в евро — не делать.</p>
+    <p class="question">Делаем скидку на позицию, флажок НДС и единицы рул., упак., компл., усл.? (Если нужна скидка на весь итог вместо позиций или другие единицы — напишите.)</p>
+    <div class="answer" data-id="g3-calc"></div>
+  </article>
+
+  <article class="item">
+    <div class="ihead"><span class="num">4</span><h3>Условия предложения: срок действия, оплата, срок поставки — готовыми фразами</h3></div>
+
+    <figure>
+      <svg viewBox="0 0 740 180" role="img" aria-label="Блок условий в форме">
+        <text x="14" y="24" font-size="13" font-weight="600">Условия и комментарии</text>
+        <rect class="new" x="14" y="38" width="14" height="14" rx="3"/><text class="a" x="17" y="50" font-size="12">✓</text>
+        <text x="36" y="50" font-size="12">Доставка до объекта рассчитывается отдельно.</text>
+        <rect class="new" x="14" y="62" width="14" height="14" rx="3"/><text class="a" x="17" y="74" font-size="12">✓</text>
+        <text x="36" y="74" font-size="12">Предложение действительно до</text>
+        <rect class="box" x="232" y="60" width="92" height="20" rx="4"/><text x="240" y="74" font-size="12">28.11.2026</text>
+        <rect class="box" x="14" y="86" width="14" height="14" rx="3"/>
+        <text x="36" y="98" font-size="12">Условия оплаты: 100 % предоплата.</text>
+        <rect class="new" x="14" y="110" width="14" height="14" rx="3"/><text class="a" x="17" y="122" font-size="12">✓</text>
+        <text x="36" y="122" font-size="12">Срок поставки: 3–4 недели с момента оплаты.</text>
+        <rect class="box" x="14" y="136" width="130" height="24" rx="5"/><text x="24" y="152" font-size="11">+ своя фраза</text>
+        <text class="m" x="400" y="50" font-size="11">Отмеченные фразы встают под таблицами</text>
+        <text class="m" x="400" y="65" font-size="11">в том же виде, что сейчас комментарий о доставке.</text>
+        <text class="m" x="400" y="90" font-size="11">Свои фразы запоминаются в браузере</text>
+        <text class="m" x="400" y="105" font-size="11">и предлагаются в следующих проектах.</text>
+        <text class="m" x="400" y="130" font-size="11">Срок действия по умолчанию — дата КП + 14 дней.</text>
+      </svg>
+      <figcaption>Вместо трёх переключателей «Комментарий по доставке» — список фраз с флажками.</figcaption>
+    </figure>
+
+    <div class="tp">
+      <div class="now"><span class="label">Сейчас</span>
+        <p>Есть один комментарий о доставке (три режима). Срок действия цен, условия оплаты и срок поставки менеджер
+          каждый раз набирает руками в «Свой комментарий» или не пишет вовсе. При курсе евро в расчётах КП без срока
+          действия — повод для спора с клиентом.</p></div>
+      <div class="next"><span class="label">После</span>
+        <p>Набор готовых фраз с флажками, текст каждой можно поправить; своя фраза сохраняется для следующих КП.
+          Старые проекты открываются с теми же комментариями, что были. Начальный набор фраз и срок по умолчанию
+          задаёте вы.</p></div>
+    </div>
+    <p class="cost">Объём: 1 карточка. Формулировки фраз — ваши; в макете мои заготовки.</p>
+    <p class="rec"><b>Рекомендую сделать</b> с четырьмя фразами из макета; срок действия по умолчанию выключен, чтобы нынешние КП не изменились сами.</p>
+    <p class="question">Делаем список фраз? Если да — поправьте формулировки и срок действия (14 дней?), если они не такие.</p>
+    <div class="answer" data-id="g4-terms"></div>
+  </article>
+
+  <article class="item">
+    <div class="ihead"><span class="num">5</span><h3>Несколько коллекций в одном КП</h3></div>
+
+    <figure>
+      <svg viewBox="0 0 740 150" role="img" aria-label="Схема КП с одной и с несколькими коллекциями">
+        <text x="14" y="20" font-size="12" font-weight="600">Сейчас: одно КП = одна ссылка</text>
+        <rect class="fillbg" x="14" y="30" width="90" height="100" rx="4"/><text class="m" x="24" y="52" font-size="10">Обращение</text>
+        <text x="24" y="72" font-size="10">Коллекция А</text><text class="m" x="24" y="88" font-size="10">артикулы</text><text class="m" x="24" y="102" font-size="10">характеристики</text><text class="m" x="24" y="120" font-size="10">Расчёт</text>
+        <text class="m" x="120" y="84" font-size="11">Клиент просит сравнить</text><text class="m" x="120" y="99" font-size="11">два покрытия → два PDF.</text>
+
+        <text x="330" y="20" font-size="12" font-weight="600">Вариант: в одном КП несколько коллекций</text>
+        <rect class="fillbg" x="330" y="30" width="90" height="100" rx="4"/><text class="m" x="340" y="52" font-size="10">Обращение</text>
+        <text x="340" y="72" font-size="10">Коллекция А</text><text class="m" x="340" y="88" font-size="10">артикулы</text><text class="m" x="340" y="102" font-size="10">характеристики</text>
+        <rect class="new" x="430" y="30" width="90" height="100" rx="4"/>
+        <text class="a" x="440" y="52" font-size="10">Коллекция Б</text><text class="m" x="440" y="68" font-size="10">артикулы</text><text class="m" x="440" y="82" font-size="10">характеристики</text>
+        <rect class="fillbg" x="530" y="30" width="90" height="100" rx="4"/><text class="m" x="540" y="52" font-size="10">Расчёт</text><text class="m" x="540" y="68" font-size="10">(общий или</text><text class="m" x="540" y="82" font-size="10">по вариантам)</text>
+        <text class="m" x="630" y="60" font-size="11">Затрагивает</text><text class="m" x="630" y="75" font-size="11">форму, данные,</text><text class="m" x="630" y="90" font-size="11">листы, DOCX,</text><text class="m" x="630" y="105" font-size="11">экспорт.</text>
+      </svg>
+      <figcaption>Самое дорогое изменение из всех: проект перестаёт быть «одной ссылкой».</figcaption>
+    </figure>
+
+    <p>Я не знаю, как часто менеджеры предлагают клиенту два-три покрытия сразу (основное и подешевле; линолеум и
+      плинтус со своим описанием). Если часто — это самая полезная функция из списка. Если редко — копия проекта
+      из группы 1 закрывает случай: второе КП делается за минуту.</p>
+    <p class="cost">Объём: 3 карточки, меняется формат проекта (нужна миграция сохранённых проектов и файлов экспорта).</p>
+    <p class="rec"><b>Рекомендую отложить</b> до тех пор, пока группы 1–4 не будут в работе у менеджеров: за это время станет видно, хватает ли копии проекта.</p>
+    <p class="question">Откладываем несколько коллекций в одном КП? (Если нужно сейчас — напишите, как это выглядит у вас: общий расчёт или отдельная таблица на каждую коллекцию.)</p>
+    <div class="answer" data-id="g5-multi-collection"></div>
+  </article>
+
+  <article class="item">
+    <div class="ihead"><span class="num">6</span><h3>Сохранность проектов: они лежат только в браузере менеджера</h3></div>
+
+    <div class="tp">
+      <div class="now"><span class="label">Вариант А: напоминание и копия одним нажатием</span>
+        <ul>
+          <li>В списке проектов строка «Резервная копия: 9 дней назад» и кнопка «Сохранить копию» (тот же файл, что «Экспорт всех проектов»).</li>
+          <li>Если копии не было больше 7 дней и проекты менялись — строка подсвечивается.</li>
+          <li>Приложение просит браузер не стирать данные при нехватке места.</li>
+          <li>Проекты остаются у каждого менеджера свои.</li>
+        </ul>
+        <p class="cost">Полкарточки, сервер не меняется.</p></div>
+      <div class="next"><span class="label">Вариант Б: проекты на сервере</span>
+        <ul>
+          <li>Проекты хранятся на сервере рядом со списком менеджеров; открываются с любого компьютера.</li>
+          <li>Менеджеры видят проекты друг друга (или нужен вход по имени и паролю для каждого).</li>
+          <li>Сервер перестаёт быть «тупым»: хранение, права, одновременная правка, резервные копии на хостинге.</li>
+        </ul>
+        <p class="cost">3–4 карточки и решение о входе менеджеров.</p></div>
+    </div>
+    <p>Сейчас чистка браузера, переустановка Windows или переезд приложения на хостинг (адрес сменится) стирают все
+      проекты менеджера, если он сам не нажал «Экспорт всех проектов». Напоминания об этом в приложении нет.</p>
+    <p class="rec"><b>Рекомендую вариант А сейчас.</b> Вариант Б имеет смысл, когда появится потребность работать с одного проекта с разных компьютеров или передавать проекты между менеджерами чаще, чем файлом.</p>
+    <p class="question">Делаем вариант А, общую базу на сервере не делаем?</p>
+    <div class="answer" data-id="g6-backup"></div>
+  </article>
+
+</section>
+
+<section>
+  <h2>Что не предлагаю</h2>
+  <ul class="plain">
+    <li>Отправку КП письмом из приложения: PDF делает диалог печати браузера, приложение не может сам приложить файл к письму. Нужен был бы серверный рендер PDF — отдельная большая тема.</li>
+    <li>Номер КП и журнал отправленных: без общей базы на сервере номера у менеджеров будут пересекаться.</li>
+    <li>Новый дизайн формы и листа, версию для телефона: КП делают за рабочим компьютером, бланк фирменный.</li>
+    <li>Разбор других сайтов, кроме gelster.ru и ooogelingen.ru.</li>
+    <li>Подстановку цен с сайта: на страницах коллекций цен в надёжном виде нет, цену назначает менеджер.</li>
+    <li>Цену в евро (см. группу 3).</li>
+  </ul>
+</section>
+
+<section>
+  <details class="box">
+    <summary>На чём основано</summary>
+    <ul class="plain">
+      <li>Прочитан код формы, страницы КП, окна артикулов, списка проектов и страницы менеджеров, спецификация и журнал решений; пройден чек-лист ручной приёмки.</li>
+      <li>Живое приложение в этой сессии запустить нельзя; макеты на странице нарисованы, это не снимки экрана.</li>
+      <li>Незакрытое из приёмки (не входит в эту задачу): установка на хостинг, импорт в другом браузере, блокировка после 5 неверных паролей, DOCX в LibreOffice.</li>
+    </ul>
+  </details>
+</section>
+
+<section>
+  <h2>Что-то ещё</h2>
+  <p>Чего не хватает менеджерам, а в списке нет; что мешает в работе прямо сейчас.</p>
+  <div class="answer" data-id="general"></div>
+</section>
+
+<section>
+  <div class="donebox">
+    <button type="button" id="done-btn"></button>
+    <span class="astate" id="done-state" aria-live="polite"></span>
+  </div>
+</section>
+
+</main>
+<script>
+const UI = {
+  placeholder: "Ваш ответ",
+  saving: "Сохраняю…",
+  saved: "Сохранено",
+  failed: "Не сохранилось. Скопируйте текст, чтобы он не пропал",
+  done: "Я ответил",
+  doneSent: "Отправлено. Агент получил сигнал, страницу можно закрыть.",
+  doneFailed: "Сигнал не дошёл. Ответьте в Telegram «Ответил на странице».",
+};
+
+(() => {
+  const fields = {}, gen = {}, chain = {}, timers = {};
+
+  const post = (id, text) => fetch("answers", {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, text }),
+  }).then(r => { if (!r.ok) throw new Error(r.status); });
+
+  function upload(id) {
+    clearTimeout(timers[id]); delete timers[id];
+    const f = fields[id], g = gen[id], text = f.ta.value;
+    chain[id] = (chain[id] || Promise.resolve()).then(async () => {
+      f.st.textContent = UI.saving; f.st.classList.remove("err");
+      try {
+        await post(id, text);
+        if (gen[id] === g) f.st.textContent = UI.saved;
+      } catch (e) {
+        if (gen[id] === g) { f.st.textContent = UI.failed; f.st.classList.add("err"); }
+      }
+    });
+  }
+
+  document.querySelectorAll(".answer[data-id]").forEach(box => {
+    const id = box.dataset.id;
+    const ta = document.createElement("textarea"), st = document.createElement("span");
+    ta.rows = 2; ta.placeholder = box.dataset.placeholder || UI.placeholder; ta.id = "answer-" + id;
+    st.className = "astate"; st.setAttribute("aria-live", "polite");
+    box.append(ta, st);
+    fields[id] = { ta, st }; gen[id] = 0;
+    ta.addEventListener("input", () => {
+      gen[id]++; st.textContent = ""; st.classList.remove("err");
+      clearTimeout(timers[id]); timers[id] = setTimeout(() => upload(id), 600);
+    });
+  });
+
+  addEventListener("pagehide", () => Object.keys(timers).forEach(id =>
+    navigator.sendBeacon("answers", JSON.stringify({ id, text: fields[id].ta.value }))));
+
+  fetch("answers").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(saved => {
+    Object.entries(saved).forEach(([id, a]) => {
+      const f = fields[id];
+      if (f && !f.ta.value && gen[id] === 0) { f.ta.value = a.text || ""; if (f.ta.value) f.st.textContent = UI.saved; }
+    });
+  }).catch(() => {});
+
+  const doneBtn = document.getElementById("done-btn"), doneState = document.getElementById("done-state");
+  if (doneBtn) {
+    doneBtn.textContent = UI.done;
+    doneBtn.addEventListener("click", async () => {
+      Object.keys(timers).forEach(upload);
+      await Promise.all(Object.values(chain));
+      try {
+        const r = await fetch("done", { method: "POST" });
+        if (!r.ok) throw new Error(r.status);
+        doneState.textContent = UI.doneSent; doneState.classList.remove("err");
+      } catch (e) { doneState.textContent = UI.doneFailed; doneState.classList.add("err"); }
+    });
+  }
+})();
+</script>
+</body>
+</html>
